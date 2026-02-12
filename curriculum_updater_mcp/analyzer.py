@@ -204,7 +204,7 @@ def _assess_priority(update: Update, gap_type: str, affected_weeks: list[int]) -
         return "high"
     
     # New features from official sources are high priority
-    if gap_type == "new_feature" and update.source in ["anthropic_blog", "anthropic_changelog"]:
+    if gap_type == "new_feature" and update.source in ["anthropic_blog", "anthropic_changelog", "github_releases"]:
         return "high"
     
     # Updates to foundation weeks (1-3) are high priority for beginners
