@@ -1,5 +1,6 @@
 """Data source fetchers for Claude Code updates."""
 
+import asyncio
 import json
 import re
 from datetime import datetime, timezone
@@ -15,7 +16,7 @@ from bs4 import BeautifulSoup
 @dataclass
 class Update:
     """A single update/announcement about Claude Code."""
-    source: str  # "x_boris", "anthropic_blog", "anthropic_changelog", "anthropic_docs"
+    source: str  # "x_boris", "anthropic_blog", "anthropic_changelog", "anthropic_docs", "github_releases", "youtube_anthropic", "reddit_claude", "discord_anthropic"
     title: str
     content: str
     url: str
@@ -33,6 +34,14 @@ ANTHROPIC_BLOG_URL = "https://www.anthropic.com/news"
 ANTHROPIC_CHANGELOG_URL = "https://docs.anthropic.com/en/changelog"
 ANTHROPIC_DOCS_URL = "https://docs.anthropic.com/en/docs"
 CLAUDE_CODE_DOCS_URL = "https://docs.anthropic.com/en/docs/claude-code"
+
+# New sources
+GITHUB_RELEASES_URL = "https://github.com/anthropics/claude-code/releases"
+GITHUB_RELEASES_API = "https://api.github.com/repos/anthropics/claude-code/releases"
+ANTHROPIC_YOUTUBE_URL = "https://www.youtube.com/@anthropic-ai"
+REDDIT_CLAUDE_URL = "https://www.reddit.com/r/ClaudeAI"
+REDDIT_CLAUDE_JSON = "https://www.reddit.com/r/ClaudeAI/new.json"
+ANTHROPIC_DISCORD_URL = "https://discord.com/invite/anthropic"
 
 # Nitter instances as fallback for X scraping
 NITTER_INSTANCES = [
@@ -341,26 +350,355 @@ async def fetch_claude_code_docs() -> list[Update]:
     return updates
 
 
+async def fetch_github_releases(days_back: int = 30) -> list[Update]:
+    """Fetch recent releases from the Claude Code GitHub repository."""
+    updates = []
+
+    # Try the GitHub API first (structured JSON, no auth needed for public repos)
+    async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
+        try:
+            response = await client.get(
+                GITHUB_RELEASES_API,
+                headers={
+                    **HEADERS,
+                    "Accept": "application/vnd.github+json",
+                },
+                params={"per_page": 20},
+            )
+            response.raise_for_status()
+            releases = response.json()
+
+            for release in releases:
+                title = release.get("name", "") or release.get("tag_name", "")
+                body = release.get("body", "") or ""
+                tag = release.get("tag_name", "")
+                url = release.get("html_url", GITHUB_RELEASES_URL)
+                date = release.get("published_at", "")
+
+                if not title:
+                    continue
+
+                # All releases are relevant — this is the Claude Code repo
+                content = f"Release {tag}: {body[:500]}" if body else f"Release {tag}"
+
+                updates.append(Update(
+                    source="github_releases",
+                    title=f"Claude Code {title}",
+                    content=content,
+                    url=url,
+                    date=date or datetime.now(timezone.utc).isoformat(),
+                    tags=["claude-code", "release"] + _extract_tags(f"{title} {body}".lower()),
+                ))
+
+            return updates
+
+        except Exception:
+            pass
+
+    # Fallback: scrape the releases HTML page
+    try:
+        async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
+            response = await client.get(GITHUB_RELEASES_URL, headers=HEADERS)
+            response.raise_for_status()
+
+        soup = BeautifulSoup(response.text, "html.parser")
+        release_entries = soup.select("[data-test-selector='release-entry'], .release, section")
+
+        for entry in release_entries[:20]:
+            title_el = entry.select_one("h2 a, .release-title a, a[href*='/releases/tag/']")
+            if not title_el:
+                continue
+
+            title = title_el.get_text(strip=True)
+            href = title_el.get("href", "")
+            url = f"https://github.com{href}" if href.startswith("/") else href
+
+            body_el = entry.select_one(".markdown-body, .release-body")
+            body = body_el.get_text(strip=True)[:500] if body_el else ""
+
+            date_el = entry.select_one("relative-time, time")
+            date = date_el.get("datetime", "") if date_el else ""
+
+            updates.append(Update(
+                source="github_releases",
+                title=f"Claude Code {title}",
+                content=body or title,
+                url=url,
+                date=date or datetime.now(timezone.utc).isoformat(),
+                tags=["claude-code", "release"] + _extract_tags(f"{title} {body}".lower()),
+            ))
+    except Exception:
+        pass
+
+    return updates
+
+
+async def fetch_anthropic_youtube(days_back: int = 30) -> list[Update]:
+    """Fetch recent videos from Anthropic's YouTube channel."""
+    updates = []
+
+    # YouTube channel page — scrape video titles and descriptions
+    urls_to_try = [
+        "https://www.youtube.com/@anthropic-ai/videos",
+        "https://www.youtube.com/@AnthropicAI/videos",
+    ]
+
+    for url in urls_to_try:
+        try:
+            async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
+                response = await client.get(url, headers=HEADERS)
+                if response.status_code != 200:
+                    continue
+
+            soup = BeautifulSoup(response.text, "html.parser")
+
+            # YouTube embeds video data in script tags as JSON
+            scripts = soup.find_all("script")
+            for script in scripts:
+                text = script.get_text()
+                if "videoRenderer" not in text and "gridVideoRenderer" not in text:
+                    continue
+
+                # Extract video titles using regex
+                title_matches = re.findall(r'"title":\{"runs":\[\{"text":"([^"]+)"\}', text)
+                video_id_matches = re.findall(r'"videoId":"([^"]+)"', text)
+                desc_matches = re.findall(r'"descriptionSnippet":\{"runs":\[\{"text":"([^"]+)"', text)
+
+                for i, title in enumerate(title_matches[:15]):
+                    if not _is_claude_relevant(title.lower()):
+                        continue
+
+                    video_id = video_id_matches[i] if i < len(video_id_matches) else ""
+                    desc = desc_matches[i] if i < len(desc_matches) else ""
+                    video_url = f"https://www.youtube.com/watch?v={video_id}" if video_id else url
+
+                    updates.append(Update(
+                        source="youtube_anthropic",
+                        title=title,
+                        content=desc or title,
+                        url=video_url,
+                        date=datetime.now(timezone.utc).isoformat(),
+                        tags=["video"] + _extract_tags(f"{title} {desc}".lower()),
+                    ))
+
+                if updates:
+                    break  # Got data from script tags
+
+            # Fallback: try meta tags
+            if not updates:
+                meta_tags = soup.find_all("meta", {"property": "og:title"})
+                for meta in meta_tags:
+                    title = meta.get("content", "")
+                    if _is_claude_relevant(title.lower()):
+                        updates.append(Update(
+                            source="youtube_anthropic",
+                            title=title,
+                            content=title,
+                            url=url,
+                            date=datetime.now(timezone.utc).isoformat(),
+                            tags=["video"] + _extract_tags(title.lower()),
+                        ))
+
+            if updates:
+                break  # Found results from this URL
+
+        except Exception:
+            continue
+
+    return updates
+
+
+async def fetch_reddit_claude(days_back: int = 30) -> list[Update]:
+    """Fetch recent posts from r/ClaudeAI subreddit."""
+    updates = []
+
+    # Reddit provides JSON feeds without authentication
+    try:
+        async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
+            response = await client.get(
+                REDDIT_CLAUDE_JSON,
+                headers={
+                    "User-Agent": "CurriculumUpdater/1.0 (Claude Code Learning Tool)",
+                    "Accept": "application/json",
+                },
+                params={"limit": 50},
+            )
+            response.raise_for_status()
+            data = response.json()
+
+        posts = data.get("data", {}).get("children", [])
+
+        for post in posts:
+            post_data = post.get("data", {})
+            title = post_data.get("title", "")
+            selftext = post_data.get("selftext", "")
+            url = post_data.get("url", "")
+            permalink = post_data.get("permalink", "")
+            created = post_data.get("created_utc", 0)
+            score = post_data.get("score", 0)
+            flair = post_data.get("link_flair_text", "") or ""
+
+            if not title:
+                continue
+
+            combined = f"{title} {selftext} {flair}".lower()
+
+            # Filter for Claude Code relevance — be stricter with Reddit
+            # since there's a lot of noise
+            if not _is_claude_relevant(combined):
+                continue
+
+            # Only include posts with some engagement (score > 5)
+            if score < 5:
+                continue
+
+            post_url = f"https://www.reddit.com{permalink}" if permalink else url
+            date_str = datetime.fromtimestamp(created, tz=timezone.utc).isoformat() if created else ""
+
+            updates.append(Update(
+                source="reddit_claude",
+                title=title,
+                content=selftext[:500] if selftext else title,
+                url=post_url,
+                date=date_str,
+                tags=["community"] + _extract_tags(combined),
+            ))
+
+    except Exception:
+        pass
+
+    # Fallback: scrape HTML if JSON fails
+    if not updates:
+        try:
+            async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
+                response = await client.get(
+                    REDDIT_CLAUDE_URL,
+                    headers=HEADERS,
+                )
+                if response.status_code == 200:
+                    soup = BeautifulSoup(response.text, "html.parser")
+                    post_links = soup.select("a[href*='/r/ClaudeAI/comments/']")
+
+                    seen_urls = set()
+                    for link in post_links[:30]:
+                        title = link.get_text(strip=True)
+                        href = link.get("href", "")
+                        if not title or len(title) < 10 or href in seen_urls:
+                            continue
+                        seen_urls.add(href)
+
+                        if not _is_claude_relevant(title.lower()):
+                            continue
+
+                        full_url = href if href.startswith("http") else f"https://www.reddit.com{href}"
+
+                        updates.append(Update(
+                            source="reddit_claude",
+                            title=title,
+                            content=title,
+                            url=full_url,
+                            date=datetime.now(timezone.utc).isoformat(),
+                            tags=["community"] + _extract_tags(title.lower()),
+                        ))
+        except Exception:
+            pass
+
+    return updates
+
+
+async def fetch_anthropic_discord(days_back: int = 30) -> list[Update]:
+    """
+    Check Anthropic's Discord for updates.
+
+    Note: Discord doesn't allow scraping without bot authentication.
+    This fetcher checks Anthropic's Discord invite page and any public
+    announcement widgets for surface-level info. For full Discord monitoring,
+    you would need a Discord bot token configured separately.
+    """
+    updates = []
+
+    # Discord servers aren't publicly scrapeable without a bot token.
+    # But we can check for any public-facing info on the invite page
+    # and Anthropic pages that reference Discord announcements.
+    try:
+        # Check Anthropic's community page for Discord-sourced announcements
+        community_urls = [
+            "https://www.anthropic.com/discord",
+            "https://www.anthropic.com/community",
+        ]
+
+        async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
+            for url in community_urls:
+                try:
+                    response = await client.get(url, headers=HEADERS)
+                    if response.status_code != 200:
+                        continue
+
+                    soup = BeautifulSoup(response.text, "html.parser")
+
+                    # Look for announcement-style content
+                    announcements = soup.select("article, .announcement, .post, h2, h3")
+                    for ann in announcements[:10]:
+                        text = ann.get_text(strip=True)
+                        if not text or not _is_claude_relevant(text.lower()):
+                            continue
+
+                        updates.append(Update(
+                            source="discord_anthropic",
+                            title=_extract_title(text),
+                            content=text[:500],
+                            url=url,
+                            date=datetime.now(timezone.utc).isoformat(),
+                            tags=["community", "discord"] + _extract_tags(text.lower()),
+                        ))
+                except Exception:
+                    continue
+
+    except Exception:
+        pass
+
+    # If no results, add a note about Discord requiring bot access
+    if not updates:
+        updates.append(Update(
+            source="discord_anthropic",
+            title="Discord monitoring limited",
+            content=(
+                "Discord content requires a bot token for full monitoring. "
+                "Consider joining Anthropic's Discord manually for real-time updates. "
+                "Key channels to watch: #announcements, #claude-code, #developers."
+            ),
+            url=ANTHROPIC_DISCORD_URL,
+            date=datetime.now(timezone.utc).isoformat(),
+            tags=["community", "discord"],
+        ))
+
+    return updates
+
+
 async def fetch_all_updates(days_back: int = 30) -> list[Update]:
     """Fetch updates from all sources. Returns combined, deduplicated list."""
     all_updates = []
 
-    # Fetch from each source, catching individual failures
-    fetchers = [
-        ("Boris Cherny X", fetch_boris_x_posts(days_back)),
-        ("Anthropic Blog", fetch_anthropic_blog(days_back)),
-        ("Anthropic Changelog", fetch_anthropic_changelog(days_back)),
-        ("Claude Code Docs", fetch_claude_code_docs()),
-    ]
+    # Fetch from all sources in parallel
+    fetchers = {
+        "Boris Cherny X": fetch_boris_x_posts(days_back),
+        "Anthropic Blog": fetch_anthropic_blog(days_back),
+        "Anthropic Changelog": fetch_anthropic_changelog(days_back),
+        "Claude Code Docs": fetch_claude_code_docs(),
+        "GitHub Releases": fetch_github_releases(days_back),
+        "Anthropic YouTube": fetch_anthropic_youtube(days_back),
+        "Reddit r/ClaudeAI": fetch_reddit_claude(days_back),
+        "Anthropic Discord": fetch_anthropic_discord(days_back),
+    }
 
-    results = {}
-    for name, coro in fetchers:
-        try:
-            updates = await coro
-            results[name] = len(updates)
-            all_updates.extend(updates)
-        except Exception as e:
-            results[name] = f"Error: {str(e)}"
+    settled = await asyncio.gather(
+        *fetchers.values(), return_exceptions=True
+    )
+
+    for name, result in zip(fetchers, settled):
+        if isinstance(result, Exception):
+            continue
+        all_updates.extend(result)
 
     # Deduplicate by content similarity
     seen_content = set()
