@@ -46,6 +46,7 @@ from .cache import (
     load_cache,
     save_cache,
     mark_update_seen,
+    mark_updates_seen,
     mark_update_applied,
     is_update_seen,
     get_update_key,
@@ -215,9 +216,8 @@ async def curriculum_fetch_updates(params: FetchUpdatesInput) -> str:
                 if not is_update_seen(get_update_key(u.source, u.title))
             ]
 
-        # Mark new updates as seen
-        for u in updates:
-            mark_update_seen(get_update_key(u.source, u.title))
+        # Mark new updates as seen (single batch write)
+        mark_updates_seen([get_update_key(u.source, u.title) for u in updates])
 
         if not updates:
             last_check = get_last_check_time()
