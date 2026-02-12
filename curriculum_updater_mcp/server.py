@@ -28,6 +28,10 @@ from .sources import (
     fetch_anthropic_blog,
     fetch_anthropic_changelog,
     fetch_claude_code_docs,
+    fetch_github_releases,
+    fetch_anthropic_youtube,
+    fetch_reddit_claude,
+    fetch_anthropic_discord,
     fetch_all_updates,
     Update,
 )
@@ -68,7 +72,7 @@ class FetchUpdatesInput(BaseModel):
     )
     source: Optional[str] = Field(
         default=None,
-        description="Specific source to fetch from: 'boris_x', 'anthropic_blog', 'anthropic_changelog', 'anthropic_docs', or None for all sources",
+        description="Specific source to fetch from: 'boris_x', 'anthropic_blog', 'anthropic_changelog', 'anthropic_docs', 'github_releases', 'youtube', 'reddit', 'discord', or None for all sources",
     )
     include_seen: bool = Field(
         default=False,
@@ -193,6 +197,14 @@ async def curriculum_fetch_updates(params: FetchUpdatesInput) -> str:
             updates = await fetch_anthropic_changelog(params.days_back)
         elif params.source == "anthropic_docs":
             updates = await fetch_claude_code_docs()
+        elif params.source == "github_releases":
+            updates = await fetch_github_releases(params.days_back)
+        elif params.source == "youtube":
+            updates = await fetch_anthropic_youtube(params.days_back)
+        elif params.source == "reddit":
+            updates = await fetch_reddit_claude(params.days_back)
+        elif params.source == "discord":
+            updates = await fetch_anthropic_discord(params.days_back)
         else:
             updates = await fetch_all_updates(params.days_back)
 
@@ -228,6 +240,10 @@ async def curriculum_fetch_updates(params: FetchUpdatesInput) -> str:
                 "anthropic_blog": "📝 Anthropic Blog",
                 "anthropic_changelog": "📋 Anthropic Changelog",
                 "anthropic_docs": "📖 Claude Code Docs",
+                "github_releases": "🔖 GitHub Releases",
+                "youtube_anthropic": "🎥 Anthropic YouTube",
+                "reddit_claude": "💬 Reddit r/ClaudeAI",
+                "discord_anthropic": "🎮 Anthropic Discord",
             }.get(u.source, u.source)
 
             if source_name not in by_source:
@@ -336,42 +352,44 @@ async def curriculum_apply_update(params: ApplyUpdateInput) -> str:
         if current is None:
             return f"Error: Could not read curriculum file at '{params.curriculum_path}'."
 
-        # Build the update block
-        update_block = f"\n\n### {params.section_title}\n"
-        update_block += f"*Added: {datetime.now(timezone.utc).strftime('%Y-%m-%d')} — {params.reason}*\n\n"
-        update_block += params.content + "\n"
+        # Build the update block — insert content as-is, no wrapper
+        update_block = f"\n\n{params.content}\n"
 
         if params.action == "append" and params.week > 0:
-            # Find the week section and append before the next week
-            week_header = f"# WEEK {params.week}"
-            week_alt = f"## Week {params.week}"
-
-            # Try various header patterns
-            insert_pos = -1
-            for pattern in [week_header, week_alt, f"# Week {params.week}"]:
+            # Find the week section header
+            week_pos = -1
+            for pattern in [f"# WEEK {params.week}", f"## Week {params.week}", f"# Week {params.week}"]:
                 pos = current.lower().find(pattern.lower())
                 if pos != -1:
-                    # Find the next week header to insert before it
-                    next_week = current.lower().find(f"# week {params.week + 1}", pos + 1)
-                    if next_week == -1:
-                        next_week = current.lower().find(f"---\n# week", pos + 1)
-                    if next_week == -1:
-                        # Append at end of file
-                        insert_pos = len(current)
-                    else:
-                        insert_pos = next_week
+                    week_pos = pos
                     break
 
-            if insert_pos == -1:
+            if week_pos == -1:
                 # Week not found, append at end
                 updated = current + update_block
             else:
-                updated = current[:insert_pos] + update_block + "\n" + current[insert_pos:]
+                # Find the boundary of the next section
+                next_boundary = len(current)
+                for search in [f"# week {params.week + 1}", "## phase", "## appendix"]:
+                    pos = current.lower().find(search, week_pos + 1)
+                    if pos != -1 and pos < next_boundary:
+                        next_boundary = pos
+
+                # Find the last --- separator before the boundary
+                sep_pos = current.rfind("\n---", week_pos, next_boundary)
+
+                if sep_pos != -1:
+                    # Insert before the --- separator
+                    insert_pos = sep_pos
+                else:
+                    # No separator found, insert before the next section
+                    insert_pos = next_boundary
+
+                updated = current[:insert_pos] + update_block + current[insert_pos:]
 
         elif params.action == "new" or params.week == 0:
             # Add as new appendix section at the end
-            appendix_block = f"\n\n---\n\n## Appendix: {params.section_title}\n"
-            appendix_block += f"*Added: {datetime.now(timezone.utc).strftime('%Y-%m-%d')} — {params.reason}*\n\n"
+            appendix_block = f"\n\n---\n\n### Appendix: {params.section_title}\n\n"
             appendix_block += params.content + "\n"
             updated = current + appendix_block
 
