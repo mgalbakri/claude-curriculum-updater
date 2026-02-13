@@ -855,19 +855,6 @@ async def fetch_all_updates(days_back: int = 30) -> FetchResult:
         else:
             all_updates.extend(result)
 
-    fetchers = {**tier1_fetchers, **tier2_fetchers}
-
-    settled = await asyncio.gather(
-        *fetchers.values(), return_exceptions=True
-    )
-
-    for name, result in zip(fetchers, settled):
-        if isinstance(result, Exception):
-            logger.error("Source '%s' failed: %s", name, result)
-            errors.append(f"{name}: {type(result).__name__}: {result}")
-        else:
-            all_updates.extend(result)
-
     # Deduplicate by content hash (not just first N chars)
     seen_hashes = set()
     unique_updates = []
@@ -877,9 +864,10 @@ async def fetch_all_updates(days_back: int = 30) -> FetchResult:
             seen_hashes.add(h)
             unique_updates.append(u)
 
+    total_sources = len(tier1_fetchers) + len(tier2_fetchers)
     logger.info(
         "Total: %d unique updates from %d sources (%d errors)",
-        len(unique_updates), len(fetchers) - len(errors), len(errors),
+        len(unique_updates), total_sources - len(errors), len(errors),
     )
     return FetchResult(updates=unique_updates, errors=errors)
 

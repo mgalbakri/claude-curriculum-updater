@@ -160,26 +160,95 @@ async def send_slack_notification(webhook_url: str, title: str, message: str) ->
 async def send_email_notification(
     config: dict, subject: str, body: str
 ) -> bool:
-    """Send an email notification via SMTP."""
-    try:
-        import smtplib
-        from email.mime.text import MIMEText
+    """Send an email notification.
 
-        msg = MIMEText(body)
-        msg["Subject"] = subject
-        msg["From"] = config.get("email_from", config.get("smtp_user", ""))
-        msg["To"] = config["notify_email"]
-
-        with smtplib.SMTP(config["smtp_server"], config.get("smtp_port", 587)) as server:
-            server.starttls()
-            if config.get("smtp_user") and config.get("smtp_password"):
-                server.login(config["smtp_user"], config["smtp_password"])
-            server.send_message(msg)
-        logger.info("Email notification sent to %s", config["notify_email"])
-        return True
-    except Exception as e:
-        logger.warning("Email notification failed: %s", e)
+    Tries three methods in order:
+    1. macOS Mail.app via AppleScript (zero config — uses existing mail accounts)
+    2. SMTP with credentials (if smtp_server is configured)
+    3. macOS ``open mailto:`` as last resort (opens Mail.app compose window)
+    """
+    to_email = config.get("notify_email")
+    if not to_email:
         return False
+
+    # --- Method 1: macOS Mail.app via AppleScript (preferred — no credentials needed) ---
+    if sys.platform == "darwin":
+        try:
+            if _send_via_mail_app(to_email, subject, body):
+                logger.info("Email sent via Mail.app to %s", to_email)
+                return True
+        except Exception as e:
+            logger.debug("Mail.app send failed, trying SMTP: %s", e)
+
+    # --- Method 2: SMTP with credentials ---
+    if config.get("smtp_server"):
+        try:
+            import smtplib
+            from email.mime.text import MIMEText
+
+            msg = MIMEText(body)
+            msg["Subject"] = subject
+            msg["From"] = config.get("email_from", config.get("smtp_user", ""))
+            msg["To"] = to_email
+
+            with smtplib.SMTP(config["smtp_server"], config.get("smtp_port", 587)) as server:
+                server.starttls()
+                if config.get("smtp_user") and config.get("smtp_password"):
+                    server.login(config["smtp_user"], config["smtp_password"])
+                server.send_message(msg)
+            logger.info("Email sent via SMTP to %s", to_email)
+            return True
+        except Exception as e:
+            logger.warning("SMTP email failed: %s", e)
+
+    # --- Method 3: open mailto: URL (last resort — opens compose window) ---
+    if sys.platform == "darwin":
+        try:
+            import urllib.parse
+            mailto = f"mailto:{to_email}?subject={urllib.parse.quote(subject)}&body={urllib.parse.quote(body[:2000])}"
+            subprocess.run(["open", mailto], capture_output=True, timeout=10)
+            logger.info("Opened mailto: link for %s", to_email)
+            return True
+        except Exception as e:
+            logger.warning("mailto: fallback failed: %s", e)
+
+    logger.warning("All email methods failed for %s", to_email)
+    return False
+
+
+def _send_via_mail_app(to_email: str, subject: str, body: str) -> bool:
+    """Send email via macOS Mail.app using AppleScript.
+
+    This uses whatever email account is already configured in Mail.app —
+    no SMTP credentials needed.
+    """
+    # Escape for AppleScript strings
+    safe_subject = subject.replace("\\", "\\\\").replace('"', '\\"')
+    safe_body = body.replace("\\", "\\\\").replace('"', '\\"')
+    safe_to = to_email.replace("\\", "\\\\").replace('"', '\\"')
+
+    applescript = f'''
+    tell application "Mail"
+        set newMessage to make new outgoing message with properties {{subject:"{safe_subject}", content:"{safe_body}", visible:false}}
+        tell newMessage
+            make new to recipient at end of to recipients with properties {{address:"{safe_to}"}}
+        end tell
+        send newMessage
+    end tell
+    '''
+
+    result = subprocess.run(
+        ["osascript", "-e", applescript],
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+
+    if result.returncode == 0:
+        return True
+
+    logger.debug("Mail.app AppleScript failed: %s", result.stderr)
+    return False
 
 
 # --- Check & notify ---
@@ -302,7 +371,7 @@ async def run_scheduled_check() -> dict:
         if await send_slack_notification(config["notify_slack_webhook"], title, message):
             result["notifications_sent"].append("slack")
 
-    if config.get("notify_email") and config.get("smtp_server"):
+    if config.get("notify_email"):
         if await send_email_notification(config, title, gaps_detail):
             result["notifications_sent"].append("email")
 

@@ -607,6 +607,10 @@ class SchedulerInput(BaseModel):
         default=None,
         description="Minimum priority to notify: 'high', 'medium', or 'low'",
     )
+    notify_email: Optional[str] = Field(
+        default=None,
+        description="Email address to receive update notifications (uses macOS Mail.app — no SMTP setup needed)",
+    )
     auto_apply: Optional[bool] = Field(
         default=None,
         description="Enable/disable auto-applying high-priority updates to the curriculum file",
@@ -687,6 +691,8 @@ async def curriculum_scheduler(params: SchedulerInput) -> str:
                 config["notify_slack_webhook"] = params.slack_webhook
             if params.min_priority is not None:
                 config["min_priority"] = params.min_priority
+            if params.notify_email is not None:
+                config["notify_email"] = params.notify_email
             if params.auto_apply is not None:
                 config["auto_apply"] = params.auto_apply
             save_scheduler_config(config)
