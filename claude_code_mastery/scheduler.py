@@ -521,8 +521,8 @@ def _sync_to_site(curriculum_path: str, content: str) -> None:
         except Exception as e:
             logger.warning("Failed to sync to site/: %s", e)
 
-    # Sync to ~/projects/curriculum/curriculum.md (secondary copy)
-    external_copy = Path.home() / "projects" / "curriculum" / "curriculum.md"
+    # Sync to ~/Claude Projects/curriculum/curriculum.md (secondary copy)
+    external_copy = Path.home() / "Claude Projects" / "curriculum" / "curriculum.md"
     if external_copy.parent.is_dir() and external_copy.resolve() != src:
         try:
             shutil.copy2(str(src), str(external_copy))
