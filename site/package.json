@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prebuild": "test -f curriculum.md || cp ../curriculum.md . 2>/dev/null || true",
+    "prebuild": "cp ../curriculum.md . 2>/dev/null || true",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"

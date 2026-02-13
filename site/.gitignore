@@ -36,8 +36,9 @@ yarn-error.log*
 # vercel
 .vercel
 
-# curriculum.md is copied from repo root during build
-curriculum.md
+# curriculum.md is copied from repo root before deploy
+# Not gitignored — must be present for Vercel CLI deploys
+# Run: cp ../curriculum.md . before deploying
 
 # typescript
 *.tsbuildinfo
