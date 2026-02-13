@@ -1,0 +1,402 @@
+"""Scheduled runs and notification system.
+
+Provides two modes of operation:
+
+1. **Cron-compatible CLI**: Run ``curriculum-updater-check`` from crontab
+   or launchd to perform periodic checks and send notifications.
+
+2. **Background loop**: Run ``curriculum-updater-daemon`` for a long-lived
+   process that checks on a configurable interval.
+
+Notifications are sent via:
+- macOS native notifications (``osascript``)
+- Optional Slack webhook
+- Optional email (SMTP)
+- Log file (always)
+
+Configuration is stored in ~/.curriculum-updater/scheduler_config.json
+"""
+
+import asyncio
+import json
+import logging
+import os
+import shutil
+import subprocess
+import sys
+from datetime import datetime, timezone, timedelta
+from pathlib import Path
+from typing import Optional
+
+import httpx
+
+from .cache import get_cache_dir, load_curriculum_state
+from .sources import fetch_all_updates
+from .analyzer import analyze_gaps, load_curriculum_file, CURRICULUM_TOPIC_MAP
+
+logger = logging.getLogger(__name__)
+
+SCHEDULER_CONFIG_FILE = "scheduler_config.json"
+NOTIFICATION_LOG_FILE = "notifications.log"
+DEFAULT_CHECK_INTERVAL_HOURS = 24
+LAUNCHD_LABEL = "com.curriculum-updater.checker"
+
+
+def _config_path() -> Path:
+    return get_cache_dir() / SCHEDULER_CONFIG_FILE
+
+
+def _notification_log_path() -> Path:
+    return get_cache_dir() / NOTIFICATION_LOG_FILE
+
+
+def load_scheduler_config() -> dict:
+    """Load or create default scheduler configuration."""
+    path = _config_path()
+    if path.exists():
+        try:
+            return json.loads(path.read_text(encoding="utf-8"))
+        except Exception as e:
+            logger.warning("Failed to load scheduler config: %s", e)
+
+    default = {
+        "check_interval_hours": DEFAULT_CHECK_INTERVAL_HOURS,
+        "days_back": 7,
+        "notify_macos": True,
+        "notify_slack_webhook": None,
+        "notify_email": None,
+        "smtp_server": None,
+        "smtp_port": 587,
+        "smtp_user": None,
+        "smtp_password": None,
+        "email_from": None,
+        "min_priority": "high",  # Only notify for this priority and above
+        "last_scheduled_check": None,
+        "enabled": True,
+    }
+    save_scheduler_config(default)
+    return default
+
+
+def save_scheduler_config(config: dict) -> None:
+    """Persist scheduler config."""
+    _config_path().write_text(json.dumps(config, indent=2), encoding="utf-8")
+
+
+# --- Notification backends ---
+
+def _log_notification(message: str, gaps_summary: str) -> None:
+    """Always log to notifications.log."""
+    with open(_notification_log_path(), "a", encoding="utf-8") as f:
+        ts = datetime.now(timezone.utc).isoformat()
+        f.write(f"\n--- {ts} ---\n{message}\n{gaps_summary}\n")
+
+
+def send_macos_notification(title: str, message: str) -> bool:
+    """Send a native macOS notification via osascript."""
+    if sys.platform != "darwin":
+        return False
+    try:
+        # Escape special characters for AppleScript
+        safe_title = title.replace('"', '\\"')
+        safe_msg = message.replace('"', '\\"')
+        script = f'display notification "{safe_msg}" with title "{safe_title}"'
+        subprocess.run(
+            ["osascript", "-e", script],
+            capture_output=True,
+            timeout=10,
+        )
+        logger.info("macOS notification sent: %s", title)
+        return True
+    except Exception as e:
+        logger.warning("macOS notification failed: %s", e)
+        return False
+
+
+async def send_slack_notification(webhook_url: str, title: str, message: str) -> bool:
+    """Send a notification to Slack via incoming webhook."""
+    payload = {
+        "text": f"*{title}*\n{message}",
+        "blocks": [
+            {
+                "type": "header",
+                "text": {"type": "plain_text", "text": title},
+            },
+            {
+                "type": "section",
+                "text": {"type": "mrkdwn", "text": message[:2900]},
+            },
+        ],
+    }
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.post(webhook_url, json=payload)
+            if resp.status_code == 200:
+                logger.info("Slack notification sent")
+                return True
+            logger.warning("Slack webhook returned %d", resp.status_code)
+    except Exception as e:
+        logger.warning("Slack notification failed: %s", e)
+    return False
+
+
+async def send_email_notification(
+    config: dict, subject: str, body: str
+) -> bool:
+    """Send an email notification via SMTP."""
+    try:
+        import smtplib
+        from email.mime.text import MIMEText
+
+        msg = MIMEText(body)
+        msg["Subject"] = subject
+        msg["From"] = config.get("email_from", config.get("smtp_user", ""))
+        msg["To"] = config["notify_email"]
+
+        with smtplib.SMTP(config["smtp_server"], config.get("smtp_port", 587)) as server:
+            server.starttls()
+            if config.get("smtp_user") and config.get("smtp_password"):
+                server.login(config["smtp_user"], config["smtp_password"])
+            server.send_message(msg)
+        logger.info("Email notification sent to %s", config["notify_email"])
+        return True
+    except Exception as e:
+        logger.warning("Email notification failed: %s", e)
+        return False
+
+
+# --- Check & notify ---
+
+async def run_scheduled_check() -> dict:
+    """Run a single check cycle: fetch updates, analyse gaps, send notifications.
+
+    Returns a summary dict with results.
+    """
+    config = load_scheduler_config()
+    state = load_curriculum_state()
+
+    result = {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "gaps_found": 0,
+        "high_priority": 0,
+        "notifications_sent": [],
+        "errors": [],
+    }
+
+    # Fetch updates
+    try:
+        fetch_result = await fetch_all_updates(config.get("days_back", 7))
+        if fetch_result.errors:
+            result["errors"].extend(fetch_result.errors)
+    except Exception as e:
+        result["errors"].append(f"Fetch failed: {e}")
+        return result
+
+    # Load curriculum
+    curriculum_content = None
+    curriculum_path = state.get("curriculum_path") or state.get("path")
+    if curriculum_path:
+        curriculum_content = load_curriculum_file(curriculum_path)
+
+    # Analyse gaps
+    gaps = analyze_gaps(fetch_result.updates, curriculum_content)
+
+    # Filter by minimum priority
+    min_priority = config.get("min_priority", "high")
+    priority_levels = {"high": 0, "medium": 1, "low": 2}
+    min_level = priority_levels.get(min_priority, 0)
+    filtered = [
+        g for g in gaps
+        if priority_levels.get(g.priority, 2) <= min_level
+    ]
+
+    result["gaps_found"] = len(gaps)
+    result["high_priority"] = sum(1 for g in gaps if g.priority == "high")
+
+    if not filtered:
+        logger.info("No gaps above %s priority — skipping notification", min_priority)
+        config["last_scheduled_check"] = result["timestamp"]
+        save_scheduler_config(config)
+        return result
+
+    # Build notification message
+    title = f"📚 Curriculum: {len(filtered)} update(s) need attention"
+    lines = []
+    for g in filtered[:5]:
+        emoji = {"high": "🔴", "medium": "🟡", "low": "🟢"}.get(g.priority, "")
+        lines.append(f"{emoji} [{g.priority.upper()}] {g.update.title[:80]}")
+    if len(filtered) > 5:
+        lines.append(f"... and {len(filtered) - 5} more")
+    message = "\n".join(lines)
+
+    gaps_detail = "\n\n".join(g.suggestion for g in filtered)
+
+    # Always log
+    _log_notification(title, gaps_detail)
+
+    # Send notifications
+    if config.get("notify_macos", True):
+        short_msg = f"{len(filtered)} gap(s) found. Highest: {filtered[0].update.title[:60]}"
+        if send_macos_notification(title, short_msg):
+            result["notifications_sent"].append("macos")
+
+    if config.get("notify_slack_webhook"):
+        if await send_slack_notification(config["notify_slack_webhook"], title, message):
+            result["notifications_sent"].append("slack")
+
+    if config.get("notify_email") and config.get("smtp_server"):
+        if await send_email_notification(config, title, gaps_detail):
+            result["notifications_sent"].append("email")
+
+    config["last_scheduled_check"] = result["timestamp"]
+    save_scheduler_config(config)
+
+    return result
+
+
+# --- Daemon mode ---
+
+async def run_daemon(interval_hours: Optional[float] = None):
+    """Run as a long-lived background process, checking periodically."""
+    config = load_scheduler_config()
+    interval = interval_hours or config.get("check_interval_hours", DEFAULT_CHECK_INTERVAL_HOURS)
+
+    logger.info("Starting curriculum updater daemon (interval: %sh)", interval)
+
+    while True:
+        try:
+            result = await run_scheduled_check()
+            logger.info(
+                "Check complete: %d gaps, %d high priority, notifications: %s",
+                result["gaps_found"],
+                result["high_priority"],
+                result["notifications_sent"] or "none",
+            )
+        except Exception as e:
+            logger.exception("Scheduled check failed: %s", e)
+
+        await asyncio.sleep(interval * 3600)
+
+
+# --- macOS launchd integration ---
+
+def generate_launchd_plist(interval_hours: int = 24) -> str:
+    """Generate a macOS launchd plist for periodic checks."""
+    python_path = sys.executable
+    interval_seconds = interval_hours * 3600
+
+    return f"""<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>{LAUNCHD_LABEL}</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>{python_path}</string>
+        <string>-m</string>
+        <string>curriculum_updater_mcp.scheduler</string>
+        <string>--once</string>
+    </array>
+    <key>StartInterval</key>
+    <integer>{interval_seconds}</integer>
+    <key>StandardOutPath</key>
+    <string>{get_cache_dir()}/scheduler.stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>{get_cache_dir()}/scheduler.stderr.log</string>
+    <key>RunAtLoad</key>
+    <true/>
+</dict>
+</plist>"""
+
+
+def install_launchd(interval_hours: int = 24) -> str:
+    """Install a macOS launchd agent for periodic checks.
+
+    Returns a message describing what happened.
+    """
+    plist_dir = Path.home() / "Library" / "LaunchAgents"
+    plist_dir.mkdir(parents=True, exist_ok=True)
+    plist_path = plist_dir / f"{LAUNCHD_LABEL}.plist"
+
+    plist_content = generate_launchd_plist(interval_hours)
+    plist_path.write_text(plist_content, encoding="utf-8")
+
+    # Unload old version if present
+    subprocess.run(
+        ["launchctl", "unload", str(plist_path)],
+        capture_output=True,
+    )
+
+    # Load new version
+    result = subprocess.run(
+        ["launchctl", "load", str(plist_path)],
+        capture_output=True,
+        text=True,
+    )
+
+    if result.returncode == 0:
+        return (
+            f"✅ Installed macOS background checker!\n"
+            f"- Plist: {plist_path}\n"
+            f"- Interval: every {interval_hours} hour(s)\n"
+            f"- Logs: {get_cache_dir()}/scheduler.*.log\n\n"
+            f"To uninstall: launchctl unload {plist_path}"
+        )
+    else:
+        return f"⚠️ launchctl load failed: {result.stderr}"
+
+
+def generate_crontab_entry(interval_hours: int = 24) -> str:
+    """Generate a crontab entry for periodic checks."""
+    python_path = sys.executable
+
+    if interval_hours <= 1:
+        schedule = "0 * * * *"  # Every hour
+    elif interval_hours <= 6:
+        schedule = f"0 */{interval_hours} * * *"  # Every N hours
+    elif interval_hours <= 24:
+        schedule = "0 9 * * *"  # Daily at 9 AM
+    else:
+        schedule = "0 9 * * 1"  # Weekly on Monday
+
+    return (
+        f"# Curriculum Updater - check for Claude Code updates\n"
+        f"{schedule} {python_path} -m curriculum_updater_mcp.scheduler --once "
+        f">> {get_cache_dir()}/scheduler.cron.log 2>&1"
+    )
+
+
+# --- CLI entry point ---
+
+def main():
+    """CLI entry point for scheduled checks."""
+    import argparse
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
+    )
+
+    parser = argparse.ArgumentParser(description="Curriculum Updater Scheduler")
+    parser.add_argument("--once", action="store_true", help="Run a single check and exit")
+    parser.add_argument("--daemon", action="store_true", help="Run as background daemon")
+    parser.add_argument("--install-launchd", action="store_true", help="Install macOS launchd agent")
+    parser.add_argument("--show-crontab", action="store_true", help="Show crontab entry")
+    parser.add_argument("--interval", type=int, default=24, help="Check interval in hours (default: 24)")
+    args = parser.parse_args()
+
+    if args.install_launchd:
+        print(install_launchd(args.interval))
+    elif args.show_crontab:
+        print(generate_crontab_entry(args.interval))
+    elif args.daemon:
+        asyncio.run(run_daemon(args.interval))
+    else:
+        # Default: single check
+        result = asyncio.run(run_scheduled_check())
+        print(json.dumps(result, indent=2))
+
+
+if __name__ == "__main__":
+    main()

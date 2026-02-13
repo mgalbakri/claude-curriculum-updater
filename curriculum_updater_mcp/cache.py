@@ -1,9 +1,12 @@
 """Local cache for tracking seen updates and curriculum state."""
 
 import json
+import logging
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
+
+logger = logging.getLogger(__name__)
 
 
 DEFAULT_CACHE_DIR = Path.home() / ".curriculum-updater"
@@ -14,6 +17,8 @@ MAX_SEEN_UPDATES = 500
 # In-memory singletons — avoids repeated disk reads
 _cache_instance: Optional[dict] = None
 _state_instance: Optional[dict] = None
+# Tracks insertion order so we can trim oldest entries
+_seen_order: list[str] = []
 
 
 def get_cache_dir() -> Path:
@@ -25,7 +30,7 @@ def get_cache_dir() -> Path:
 
 def load_cache() -> dict:
     """Load the update cache from disk (once per session, then in-memory)."""
-    global _cache_instance
+    global _cache_instance, _seen_order
     if _cache_instance is not None:
         return _cache_instance
 
@@ -33,13 +38,16 @@ def load_cache() -> dict:
     if cache_file.exists():
         try:
             data = json.loads(cache_file.read_text(encoding="utf-8"))
-            # Convert seen_updates list to set for O(1) lookups
-            data["seen_updates"] = set(data.get("seen_updates", []))
+            seen_list = data.get("seen_updates", [])
+            data["seen_updates"] = set(seen_list)
+            # Preserve disk order as our best approximation of insertion order
+            _seen_order = list(seen_list)
             _cache_instance = data
             return _cache_instance
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("Failed to load cache from %s: %s", cache_file, e)
 
+    _seen_order = []
     _cache_instance = {"seen_updates": set(), "last_check": None, "applied_updates": []}
     return _cache_instance
 
@@ -59,16 +67,24 @@ def save_cache(cache: dict) -> None:
 
 def mark_update_seen(update_key: str) -> None:
     """Mark an update as seen."""
+    global _seen_order
     cache = load_cache()
-    cache["seen_updates"].add(update_key)
+    if update_key not in cache["seen_updates"]:
+        cache["seen_updates"].add(update_key)
+        _seen_order.append(update_key)
     cache["last_check"] = datetime.now(timezone.utc).isoformat()
+    _trim_seen(cache)
     save_cache(cache)
 
 
 def mark_updates_seen(update_keys: list[str]) -> None:
     """Mark multiple updates as seen in a single write."""
+    global _seen_order
     cache = load_cache()
-    cache["seen_updates"].update(update_keys)
+    for key in update_keys:
+        if key not in cache["seen_updates"]:
+            cache["seen_updates"].add(key)
+            _seen_order.append(key)
     cache["last_check"] = datetime.now(timezone.utc).isoformat()
     _trim_seen(cache)
     save_cache(cache)
@@ -115,8 +131,8 @@ def load_curriculum_state() -> dict:
         try:
             _state_instance = json.loads(state_file.read_text(encoding="utf-8"))
             return _state_instance
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("Failed to load state from %s: %s", state_file, e)
 
     _state_instance = {
         "current_week": 1,
@@ -136,8 +152,11 @@ def save_curriculum_state(state: dict) -> None:
 
 
 def _trim_seen(cache: dict) -> None:
-    """Trim seen_updates to MAX_SEEN_UPDATES, keeping the most recent keys."""
+    """Trim seen_updates to MAX_SEEN_UPDATES, dropping the oldest entries."""
+    global _seen_order
     if len(cache["seen_updates"]) > MAX_SEEN_UPDATES:
-        # Set has no order, so just keep an arbitrary subset at the limit
-        # In practice this rarely triggers since keys are small strings
-        cache["seen_updates"] = set(sorted(cache["seen_updates"])[-MAX_SEEN_UPDATES:])
+        # Keep the most recently added keys
+        keep = set(_seen_order[-MAX_SEEN_UPDATES:])
+        cache["seen_updates"] = cache["seen_updates"] & keep
+        _seen_order = [k for k in _seen_order if k in cache["seen_updates"]]
+        logger.info("Trimmed seen_updates from %d to %d", len(cache["seen_updates"]) + (MAX_SEEN_UPDATES - len(keep)), len(cache["seen_updates"]))

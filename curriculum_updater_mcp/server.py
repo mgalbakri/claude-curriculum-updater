@@ -1,22 +1,15 @@
 """
 Curriculum Updater MCP Server
 
-Monitors Claude Code updates from Boris Cherny's X account, Anthropic blog,
-changelog, and docs. Analyzes gaps against your learning curriculum and
-suggests or applies updates.
+Monitors Claude Code updates from multiple sources and analyzes gaps
+against your learning curriculum.
 
-Usage with Claude Code:
-    Add to ~/.claude/settings.json under mcpServers:
-    {
-        "curriculum_updater": {
-            "command": "python",
-            "args": ["-m", "curriculum_updater_mcp.server"],
-            "cwd": "/path/to/claude-curriculum-updater"
-        }
-    }
+Sources: Boris Cherny's X, Anthropic blog, changelog, docs, GitHub releases,
+YouTube, Reddit r/ClaudeAI.
 """
 
-import json
+import logging
+import re
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -31,8 +24,12 @@ from .sources import (
     fetch_github_releases,
     fetch_anthropic_youtube,
     fetch_reddit_claude,
-    fetch_anthropic_discord,
+    fetch_github_releases_atom,
+    fetch_reddit_atom,
+    fetch_pypi_releases,
+    fetch_npm_releases,
     fetch_all_updates,
+    FetchResult,
     Update,
 )
 from .analyzer import (
@@ -54,6 +51,16 @@ from .cache import (
     load_curriculum_state,
     save_curriculum_state,
 )
+from .docs_differ import run_docs_diff
+from .scheduler import (
+    run_scheduled_check,
+    load_scheduler_config,
+    save_scheduler_config,
+    install_launchd,
+    generate_crontab_entry,
+)
+
+logger = logging.getLogger(__name__)
 
 # --- Initialize Server ---
 
@@ -73,7 +80,7 @@ class FetchUpdatesInput(BaseModel):
     )
     source: Optional[str] = Field(
         default=None,
-        description="Specific source to fetch from: 'boris_x', 'anthropic_blog', 'anthropic_changelog', 'anthropic_docs', 'github_releases', 'youtube', 'reddit', 'discord', or None for all sources",
+        description="Specific source to fetch from: 'boris_x', 'anthropic_blog', 'anthropic_changelog', 'anthropic_docs', 'github_releases', 'youtube', 'reddit', or None for all sources",
     )
     include_seen: bool = Field(
         default=False,
@@ -189,25 +196,29 @@ async def curriculum_fetch_updates(params: FetchUpdatesInput) -> str:
         str: Markdown-formatted list of discovered updates with source, date, and tags
     """
     try:
+        errors = []
+
         # Fetch from specified or all sources
-        if params.source == "boris_x":
-            updates = await fetch_boris_x_posts(params.days_back)
-        elif params.source == "anthropic_blog":
-            updates = await fetch_anthropic_blog(params.days_back)
-        elif params.source == "anthropic_changelog":
-            updates = await fetch_anthropic_changelog(params.days_back)
-        elif params.source == "anthropic_docs":
-            updates = await fetch_claude_code_docs()
-        elif params.source == "github_releases":
-            updates = await fetch_github_releases(params.days_back)
-        elif params.source == "youtube":
-            updates = await fetch_anthropic_youtube(params.days_back)
-        elif params.source == "reddit":
-            updates = await fetch_reddit_claude(params.days_back)
-        elif params.source == "discord":
-            updates = await fetch_anthropic_discord(params.days_back)
+        if params.source:
+            single_fetchers = {
+                "boris_x": lambda: fetch_boris_x_posts(params.days_back),
+                "anthropic_blog": lambda: fetch_anthropic_blog(params.days_back),
+                "anthropic_changelog": lambda: fetch_anthropic_changelog(params.days_back),
+                "anthropic_docs": lambda: fetch_claude_code_docs(),
+                "github_releases": lambda: fetch_github_releases_atom(params.days_back),
+                "youtube": lambda: fetch_anthropic_youtube(params.days_back),
+                "reddit": lambda: fetch_reddit_atom(params.days_back),
+                "pypi": lambda: fetch_pypi_releases(params.days_back),
+                "npm": lambda: fetch_npm_releases(params.days_back),
+            }
+            fetcher = single_fetchers.get(params.source)
+            if not fetcher:
+                return f"Unknown source '{params.source}'. Valid sources: {', '.join(single_fetchers.keys())}"
+            updates = await fetcher()
         else:
-            updates = await fetch_all_updates(params.days_back)
+            result = await fetch_all_updates(params.days_back)
+            updates = result.updates
+            errors = result.errors
 
         # Filter out seen updates unless requested
         if not params.include_seen:
@@ -221,48 +232,64 @@ async def curriculum_fetch_updates(params: FetchUpdatesInput) -> str:
 
         if not updates:
             last_check = get_last_check_time()
-            return (
+            msg = (
                 f"No new updates found in the last {params.days_back} days.\n"
                 f"Last check: {last_check or 'Never'}\n\n"
                 f"Try increasing days_back or use include_seen=true to see all updates."
             )
+            if errors:
+                msg += f"\n\n**Source errors ({len(errors)}):**\n"
+                for e in errors:
+                    msg += f"- {e}\n"
+            return msg
 
         # Format results
-        result = f"# Claude Code Updates ({len(updates)} found)\n\n"
-        result += f"**Period:** Last {params.days_back} days\n"
-        result += f"**Checked:** {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}\n\n"
+        output = f"# Claude Code Updates ({len(updates)} found)\n\n"
+        output += f"**Period:** Last {params.days_back} days\n"
+        output += f"**Checked:** {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}\n\n"
+
+        if errors:
+            output += f"**Warning:** {len(errors)} source(s) failed:\n"
+            for e in errors:
+                output += f"- {e}\n"
+            output += "\n"
 
         # Group by source
+        SOURCE_LABELS = {
+            "x_boris": "Boris Cherny (X)",
+            "anthropic_blog": "Anthropic Blog",
+            "anthropic_changelog": "Anthropic Changelog",
+            "anthropic_docs": "Claude Code Docs",
+            "github_releases": "GitHub Releases",
+            "youtube_anthropic": "Anthropic YouTube",
+            "reddit_claude": "Reddit r/ClaudeAI",
+            "pypi_releases": "PyPI Releases",
+            "npm_releases": "npm Releases",
+            "docs_diff": "Documentation Changes",
+        }
+
         by_source = {}
         for u in updates:
-            source_name = {
-                "x_boris": "🐦 Boris Cherny (X)",
-                "anthropic_blog": "📝 Anthropic Blog",
-                "anthropic_changelog": "📋 Anthropic Changelog",
-                "anthropic_docs": "📖 Claude Code Docs",
-                "github_releases": "🔖 GitHub Releases",
-                "youtube_anthropic": "🎥 Anthropic YouTube",
-                "reddit_claude": "💬 Reddit r/ClaudeAI",
-                "discord_anthropic": "🎮 Anthropic Discord",
-            }.get(u.source, u.source)
-
+            source_name = SOURCE_LABELS.get(u.source, u.source)
             if source_name not in by_source:
                 by_source[source_name] = []
             by_source[source_name].append(u)
 
         for source_name, source_updates in by_source.items():
-            result += f"## {source_name}\n\n"
+            output += f"## {source_name}\n\n"
             for u in source_updates:
-                tags_str = ", ".join(f"`{t}`" for t in u.tags) if u.tags else "—"
-                result += f"### {u.title}\n"
-                result += f"- **Date:** {u.date}\n"
-                result += f"- **Tags:** {tags_str}\n"
-                result += f"- **URL:** {u.url}\n"
-                result += f"- **Content:** {u.content[:300]}\n\n"
+                tags_str = ", ".join(f"`{t}`" for t in u.tags) if u.tags else ""
+                output += f"### {u.title}\n"
+                output += f"- **Date:** {u.date}\n"
+                if tags_str:
+                    output += f"- **Tags:** {tags_str}\n"
+                output += f"- **URL:** {u.url}\n"
+                output += f"- **Content:** {u.content[:300]}\n\n"
 
-        return result
+        return output
 
     except Exception as e:
+        logger.exception("Unexpected error in curriculum_fetch_updates")
         return f"Error fetching updates: {type(e).__name__}: {str(e)}\n\nThis may be due to network issues or rate limiting. Try again in a few minutes."
 
 
@@ -294,17 +321,21 @@ async def curriculum_analyze_gaps(params: AnalyzeGapsInput) -> str:
     """
     try:
         # Fetch all updates
-        updates = await fetch_all_updates(params.days_back)
+        result = await fetch_all_updates(params.days_back)
 
-        # Load curriculum content if path provided
+        # Load curriculum content — use explicit path, fall back to configured path
         curriculum_content = None
-        if params.curriculum_path:
-            curriculum_content = load_curriculum_file(params.curriculum_path)
+        curriculum_path = params.curriculum_path
+        if not curriculum_path:
+            state = load_curriculum_state()
+            curriculum_path = state.get("path")
+        if curriculum_path:
+            curriculum_content = load_curriculum_file(curriculum_path)
             if curriculum_content is None:
-                return f"Error: Could not read curriculum file at '{params.curriculum_path}'. Please check the path exists."
+                return f"Error: Could not read curriculum file at '{curriculum_path}'. Please check the path exists."
 
         # Analyze gaps
-        gaps = analyze_gaps(updates, curriculum_content)
+        gaps = analyze_gaps(result.updates, curriculum_content)
 
         # Filter by priority if requested
         if params.priority_filter:
@@ -312,9 +343,16 @@ async def curriculum_analyze_gaps(params: AnalyzeGapsInput) -> str:
 
         # Generate report
         report = generate_update_report(gaps)
+
+        if result.errors:
+            report += f"\n\n**Note:** {len(result.errors)} source(s) failed during fetch:\n"
+            for e in result.errors:
+                report += f"- {e}\n"
+
         return report
 
     except Exception as e:
+        logger.exception("Unexpected error in curriculum_analyze_gaps")
         return f"Error analyzing gaps: {type(e).__name__}: {str(e)}"
 
 
@@ -357,60 +395,51 @@ async def curriculum_apply_update(params: ApplyUpdateInput) -> str:
 
         if params.action == "append" and params.week > 0:
             # Find the week section header
-            week_pos = -1
-            for pattern in [f"# WEEK {params.week}", f"## Week {params.week}", f"# Week {params.week}"]:
-                pos = current.lower().find(pattern.lower())
-                if pos != -1:
-                    week_pos = pos
-                    break
+            week_pattern = re.compile(
+                rf'^(#{1,3})\s+(?:WEEK|Week|week)\s+{params.week}\b',
+                re.MULTILINE,
+            )
+            match = week_pattern.search(current)
 
-            if week_pos == -1:
-                # Week not found, append at end
+            if not match:
                 updated = current + update_block
             else:
-                # Find the boundary of the next section
-                next_boundary = len(current)
-                for search in [f"# week {params.week + 1}", "## phase", "## appendix"]:
-                    pos = current.lower().find(search, week_pos + 1)
-                    if pos != -1 and pos < next_boundary:
-                        next_boundary = pos
+                week_pos = match.start()
 
-                # Find the last --- separator before the boundary
+                # Find next week/phase/appendix header after this week
+                next_section = re.compile(
+                    rf'^#{1,3}\s+(?:(?:WEEK|Week|week)\s+{params.week + 1}\b|(?:Phase|PHASE|Appendix|APPENDIX))',
+                    re.MULTILINE,
+                )
+                next_match = next_section.search(current, match.end())
+                next_boundary = next_match.start() if next_match else len(current)
+
+                # Find last --- separator before boundary
                 sep_pos = current.rfind("\n---", week_pos, next_boundary)
 
-                if sep_pos != -1:
-                    # Insert before the --- separator
-                    insert_pos = sep_pos
-                else:
-                    # No separator found, insert before the next section
-                    insert_pos = next_boundary
-
+                insert_pos = sep_pos if sep_pos != -1 else next_boundary
                 updated = current[:insert_pos] + update_block + current[insert_pos:]
 
         elif params.action == "new" or params.week == 0:
-            # Add as new appendix section at the end
             appendix_block = f"\n\n---\n\n### Appendix: {params.section_title}\n\n"
             appendix_block += params.content + "\n"
             updated = current + appendix_block
 
         elif params.action == "replace":
-            # Find and replace an existing section
-            # Look for the section title
-            section_start = current.lower().find(params.section_title.lower())
-            if section_start == -1:
+            # Find the section title (case-insensitive)
+            section_idx = current.lower().find(params.section_title.lower())
+            if section_idx == -1:
                 return f"Error: Could not find section '{params.section_title}' in the curriculum file. Use action='append' instead."
 
-            # Find the next section header
-            next_header = -1
-            for i in range(section_start + len(params.section_title), len(current)):
-                if current[i:i+3] in ["## ", "# "] or current[i:i+4] == "### ":
-                    next_header = i
-                    break
+            # Find the next markdown header after the section title
+            next_header = re.compile(r'^#{1,3}\s+', re.MULTILINE)
+            search_start = section_idx + len(params.section_title)
+            next_match = next_header.search(current, search_start)
 
-            if next_header == -1:
-                updated = current[:section_start] + update_block
+            if next_match:
+                updated = current[:section_idx] + update_block + "\n" + current[next_match.start():]
             else:
-                updated = current[:section_start] + update_block + "\n" + current[next_header:]
+                updated = current[:section_idx] + update_block
         else:
             return f"Error: Invalid action '{params.action}'. Use 'append', 'replace', or 'new'."
 
@@ -540,10 +569,178 @@ async def curriculum_status(params: GetStatusInput) -> str:
     return result
 
 
+# --- Docs Diffing Tool ---
+
+class DocsDiffInput(BaseModel):
+    """Input for docs diffing."""
+    model_config = ConfigDict(extra="forbid")
+
+
+@mcp.tool(
+    name="curriculum_docs_diff",
+    annotations={
+        "title": "Detect Documentation Changes",
+        "readOnlyHint": False,
+        "destructiveHint": False,
+        "idempotentHint": False,
+        "openWorldHint": True,
+    }
+)
+async def curriculum_docs_diff(params: DocsDiffInput) -> str:
+    """Crawl the Claude Code documentation and detect changes since last snapshot.
+
+    On first run, takes a baseline snapshot. On subsequent runs, compares
+    against the previous snapshot to detect added, modified, and removed
+    sections — catching every docs change, not just what gets announced.
+
+    Returns:
+        str: Summary of documentation changes detected
+    """
+    try:
+        updates, summary = await run_docs_diff()
+
+        result = f"# Documentation Diff Report\n\n{summary}\n\n"
+
+        if updates:
+            result += "## Changes Detected\n\n"
+            for u in updates[:20]:
+                result += f"### {u.title}\n"
+                result += f"- **Page:** {u.url}\n"
+                result += f"- **Tags:** {', '.join(u.tags)}\n"
+                result += f"- **Content:** {u.content[:200]}\n\n"
+
+            if len(updates) > 20:
+                result += f"\n*... and {len(updates) - 20} more changes*\n"
+
+        return result
+
+    except Exception as e:
+        logger.exception("Error in docs diff")
+        return f"Error running docs diff: {type(e).__name__}: {str(e)}"
+
+
+# --- Scheduler Tool ---
+
+class SchedulerInput(BaseModel):
+    """Input for scheduler operations."""
+    model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
+
+    action: str = Field(
+        default="status",
+        description="Action: 'check' (run once now), 'status' (show config), 'configure' (update settings), 'install' (set up macOS launchd), 'crontab' (show crontab entry)",
+    )
+    check_interval_hours: Optional[int] = Field(
+        default=None,
+        description="Check interval in hours (for configure/install actions)",
+        ge=1, le=168,
+    )
+    notify_macos: Optional[bool] = Field(
+        default=None,
+        description="Enable macOS native notifications",
+    )
+    slack_webhook: Optional[str] = Field(
+        default=None,
+        description="Slack incoming webhook URL for notifications",
+    )
+    min_priority: Optional[str] = Field(
+        default=None,
+        description="Minimum priority to notify: 'high', 'medium', or 'low'",
+    )
+
+
+@mcp.tool(
+    name="curriculum_scheduler",
+    annotations={
+        "title": "Manage Scheduled Checks & Notifications",
+        "readOnlyHint": False,
+        "destructiveHint": False,
+        "idempotentHint": False,
+        "openWorldHint": False,
+    }
+)
+async def curriculum_scheduler(params: SchedulerInput) -> str:
+    """Manage automated curriculum update checks and notifications.
+
+    Supports macOS launchd (background service), cron, or manual one-shot
+    checks. Sends notifications via macOS native notifications, Slack, or email.
+
+    Actions:
+    - check: Run a single check now and send notifications if gaps found
+    - status: Show current scheduler configuration
+    - configure: Update scheduler settings
+    - install: Install macOS launchd agent for periodic checks
+    - crontab: Show crontab entry to add manually
+
+    Args:
+        params (SchedulerInput): Scheduler parameters
+
+    Returns:
+        str: Result of the scheduler action
+    """
+    try:
+        if params.action == "check":
+            result = await run_scheduled_check()
+            return (
+                f"# Scheduled Check Result\n\n"
+                f"- **Timestamp:** {result['timestamp']}\n"
+                f"- **Gaps Found:** {result['gaps_found']}\n"
+                f"- **High Priority:** {result['high_priority']}\n"
+                f"- **Notifications Sent:** {', '.join(result['notifications_sent']) or 'none'}\n"
+                f"- **Errors:** {len(result['errors'])}\n"
+            )
+
+        elif params.action == "status":
+            config = load_scheduler_config()
+            return (
+                f"# Scheduler Configuration\n\n"
+                f"- **Enabled:** {config.get('enabled', True)}\n"
+                f"- **Check Interval:** Every {config.get('check_interval_hours', 24)} hours\n"
+                f"- **Days Back:** {config.get('days_back', 7)}\n"
+                f"- **Min Priority:** {config.get('min_priority', 'high')}\n"
+                f"- **macOS Notifications:** {config.get('notify_macos', True)}\n"
+                f"- **Slack Webhook:** {'configured' if config.get('notify_slack_webhook') else 'not set'}\n"
+                f"- **Email:** {config.get('notify_email') or 'not set'}\n"
+                f"- **Last Check:** {config.get('last_scheduled_check', 'never')}\n"
+            )
+
+        elif params.action == "configure":
+            config = load_scheduler_config()
+            if params.check_interval_hours is not None:
+                config["check_interval_hours"] = params.check_interval_hours
+            if params.notify_macos is not None:
+                config["notify_macos"] = params.notify_macos
+            if params.slack_webhook is not None:
+                config["notify_slack_webhook"] = params.slack_webhook
+            if params.min_priority is not None:
+                config["min_priority"] = params.min_priority
+            save_scheduler_config(config)
+            return f"✅ Scheduler configuration updated successfully."
+
+        elif params.action == "install":
+            interval = params.check_interval_hours or 24
+            return install_launchd(interval)
+
+        elif params.action == "crontab":
+            interval = params.check_interval_hours or 24
+            entry = generate_crontab_entry(interval)
+            return f"# Crontab Entry\n\nAdd this to your crontab (`crontab -e`):\n\n```\n{entry}\n```"
+
+        else:
+            return f"Unknown action '{params.action}'. Valid: check, status, configure, install, crontab"
+
+    except Exception as e:
+        logger.exception("Error in scheduler")
+        return f"Error: {type(e).__name__}: {str(e)}"
+
+
 # --- Entry Point ---
 
 def main():
     """Run the MCP server."""
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
+    )
     mcp.run()
 
 

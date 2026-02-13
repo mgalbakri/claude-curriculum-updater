@@ -1,17 +1,26 @@
 [project]
 name = "curriculum-updater-mcp"
-version = "1.0.0"
-description = "MCP server that monitors Claude Code updates from Boris Cherny's X account and Anthropic sources, then updates your learning curriculum."
+version = "2.0.0"
+description = "MCP server that monitors Claude Code updates from multiple sources (RSS, APIs, scraping), performs semantic gap analysis against your learning curriculum, detects documentation changes, and sends scheduled notifications."
 requires-python = ">=3.10"
 dependencies = [
     "mcp[cli]>=1.0.0",
     "httpx>=0.27.0",
     "beautifulsoup4>=4.12.0",
     "pydantic>=2.0.0",
+    "scikit-learn>=1.3.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0",
 ]
 
 [project.scripts]
 curriculum-updater = "curriculum_updater_mcp.server:main"
+curriculum-updater-check = "curriculum_updater_mcp.scheduler:main"
 
 [build-system]
 requires = ["setuptools>=68.0"]
