@@ -3,15 +3,13 @@ import path from "path";
 import type { CurriculumData, Week, Appendix, Phase } from "./types";
 
 /**
- * Look for curriculum.md in several locations:
- * 1. ../curriculum.md (local dev — site/ is inside the repo)
- * 2. ./curriculum.md  (Vercel — prebuild copies it into site/)
- * 3. ../../curriculum.md (fallback)
+ * Look for curriculum.md in several locations.
+ * Priority: local copy first (for Vercel), then parent (for local dev).
  */
 function findCurriculumPath(): string {
   const candidates = [
-    path.join(process.cwd(), "..", "curriculum.md"),
     path.join(process.cwd(), "curriculum.md"),
+    path.join(process.cwd(), "..", "curriculum.md"),
     path.join(process.cwd(), "..", "..", "curriculum.md"),
   ];
   for (const candidate of candidates) {
