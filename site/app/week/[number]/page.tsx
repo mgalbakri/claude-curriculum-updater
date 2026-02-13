@@ -1,0 +1,216 @@
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import { getAllWeeks, getWeek } from "@/lib/parse-curriculum";
+import { MarkdownRenderer } from "@/components/markdown-renderer";
+
+interface WeekPageProps {
+  params: Promise<{ number: string }>;
+}
+
+export function generateStaticParams() {
+  const weeks = getAllWeeks();
+  return weeks.map((w) => ({ number: String(w.number) }));
+}
+
+export async function generateMetadata({ params }: WeekPageProps) {
+  const { number } = await params;
+  const week = getWeek(parseInt(number, 10));
+  if (!week) return { title: "Week Not Found" };
+
+  return {
+    title: `Week ${week.number}: ${week.title} — Claude Code Mastery`,
+    description: week.objective || week.subtitle,
+  };
+}
+
+const phaseBadge: Record<number, string> = {
+  1: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400",
+  2: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400",
+  3: "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-400",
+};
+
+export default async function WeekPage({ params }: WeekPageProps) {
+  const { number } = await params;
+  const weekNum = parseInt(number, 10);
+  const week = getWeek(weekNum);
+
+  if (!week) notFound();
+
+  const allWeeks = getAllWeeks();
+  const prevWeek = allWeeks.find((w) => w.number === weekNum - 1);
+  const nextWeek = allWeeks.find((w) => w.number === weekNum + 1);
+
+  return (
+    <article className="py-8 lg:py-12">
+      {/* Breadcrumb & Phase badge */}
+      <div className="flex items-center gap-2 mb-6 text-sm">
+        <Link
+          href="/"
+          className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+        >
+          Home
+        </Link>
+        <span className="text-gray-300 dark:text-gray-600">/</span>
+        <span
+          className={`text-xs font-semibold uppercase tracking-wider px-2 py-0.5 rounded ${phaseBadge[week.phase] || phaseBadge[1]}`}
+        >
+          Phase {week.phase}: {week.phaseName}
+        </span>
+      </div>
+
+      {/* Header */}
+      <header className="mb-10">
+        <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+          Week {week.number} of 12
+        </div>
+        <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-3">
+          {week.title}
+        </h1>
+        {week.subtitle && (
+          <p className="text-lg text-gray-600 dark:text-gray-400 italic">
+            {week.subtitle}
+          </p>
+        )}
+      </header>
+
+      {/* Meta cards */}
+      <div className="grid sm:grid-cols-2 gap-4 mb-10">
+        {/* Objective */}
+        {week.objective && (
+          <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/40">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400 mb-1.5">
+              Objective
+            </h3>
+            <p className="text-sm text-blue-900 dark:text-blue-200">
+              {week.objective}
+            </p>
+          </div>
+        )}
+
+        {/* Deliverable */}
+        {week.deliverable && (
+          <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/40">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400 mb-1.5">
+              Deliverable
+            </h3>
+            <p className="text-sm text-amber-900 dark:text-amber-200">
+              {week.deliverable}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Topics */}
+      {week.topics.length > 0 && (
+        <section className="mb-8">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+            Topics
+          </h2>
+          <ul className="space-y-1.5">
+            {week.topics.map((topic, i) => (
+              <li
+                key={i}
+                className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300"
+              >
+                <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-600 flex-shrink-0" />
+                {topic}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* Activities */}
+      {week.activities.length > 0 && (
+        <section className="mb-8">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+            Activities
+          </h2>
+          <ul className="space-y-1.5">
+            {week.activities.map((activity, i) => (
+              <li
+                key={i}
+                className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300"
+              >
+                <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400 dark:bg-emerald-600 flex-shrink-0" />
+                {activity}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* Skills */}
+      {week.skills && (
+        <section className="mb-10">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+            Skills You&apos;ll Gain
+          </h2>
+          <p className="text-sm text-gray-700 dark:text-gray-300">
+            {week.skills}
+          </p>
+        </section>
+      )}
+
+      {/* Full Content (markdown) */}
+      {week.content && (
+        <section className="mb-12">
+          <hr className="border-gray-200 dark:border-gray-800 mb-8" />
+          <MarkdownRenderer content={week.content} />
+        </section>
+      )}
+
+      {/* Navigation */}
+      <nav className="flex items-center justify-between pt-8 border-t border-gray-200 dark:border-gray-800">
+        {prevWeek ? (
+          <Link
+            href={`/week/${prevWeek.number}`}
+            className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+          >
+            <span>←</span>
+            <div>
+              <div className="text-xs text-gray-400 dark:text-gray-500">
+                Previous
+              </div>
+              <div className="font-medium">
+                Week {prevWeek.number}: {prevWeek.title}
+              </div>
+            </div>
+          </Link>
+        ) : (
+          <div />
+        )}
+
+        {nextWeek ? (
+          <Link
+            href={`/week/${nextWeek.number}`}
+            className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors text-right"
+          >
+            <div>
+              <div className="text-xs text-gray-400 dark:text-gray-500">
+                Next
+              </div>
+              <div className="font-medium">
+                Week {nextWeek.number}: {nextWeek.title}
+              </div>
+            </div>
+            <span>→</span>
+          </Link>
+        ) : (
+          <Link
+            href="/"
+            className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors text-right"
+          >
+            <div>
+              <div className="text-xs text-gray-400 dark:text-gray-500">
+                Finished!
+              </div>
+              <div className="font-medium">Back to Overview</div>
+            </div>
+            <span>→</span>
+          </Link>
+        )}
+      </nav>
+    </article>
+  );
+}

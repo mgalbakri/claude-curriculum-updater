@@ -1,0 +1,135 @@
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import { getAllAppendices, getAppendix } from "@/lib/parse-curriculum";
+import { MarkdownRenderer } from "@/components/markdown-renderer";
+
+interface AppendixPageProps {
+  params: Promise<{ letter: string }>;
+}
+
+export function generateStaticParams() {
+  const appendices = getAllAppendices();
+  return appendices.map((a) => ({ letter: a.letter.toLowerCase() }));
+}
+
+export async function generateMetadata({ params }: AppendixPageProps) {
+  const { letter } = await params;
+  const appendix = getAppendix(letter);
+  if (!appendix) return { title: "Appendix Not Found" };
+
+  return {
+    title: `Appendix ${appendix.letter}: ${appendix.title} — Claude Code Mastery`,
+    description: `Reference material: ${appendix.title}`,
+  };
+}
+
+export default async function AppendixPage({ params }: AppendixPageProps) {
+  const { letter } = await params;
+  const appendix = getAppendix(letter);
+
+  if (!appendix) notFound();
+
+  const allAppendices = getAllAppendices();
+  const currentIndex = allAppendices.findIndex(
+    (a) => a.letter.toLowerCase() === letter.toLowerCase()
+  );
+  const prevAppendix = currentIndex > 0 ? allAppendices[currentIndex - 1] : null;
+  const nextAppendix =
+    currentIndex < allAppendices.length - 1
+      ? allAppendices[currentIndex + 1]
+      : null;
+
+  return (
+    <article className="py-8 lg:py-12">
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-2 mb-6 text-sm">
+        <Link
+          href="/"
+          className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+        >
+          Home
+        </Link>
+        <span className="text-gray-300 dark:text-gray-600">/</span>
+        <span className="text-gray-500 dark:text-gray-400">Appendices</span>
+      </div>
+
+      {/* Header */}
+      <header className="mb-10">
+        <div className="text-sm text-gray-500 dark:text-gray-400 mb-1 font-mono">
+          Appendix {appendix.letter}
+        </div>
+        <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
+          {appendix.title}
+        </h1>
+      </header>
+
+      {/* Content */}
+      <section className="mb-12">
+        <MarkdownRenderer content={appendix.content} />
+      </section>
+
+      {/* Navigation */}
+      <nav className="flex items-center justify-between pt-8 border-t border-gray-200 dark:border-gray-800">
+        {prevAppendix ? (
+          <Link
+            href={`/appendix/${prevAppendix.letter.toLowerCase()}`}
+            className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+          >
+            <span>←</span>
+            <div>
+              <div className="text-xs text-gray-400 dark:text-gray-500">
+                Previous
+              </div>
+              <div className="font-medium">
+                Appendix {prevAppendix.letter}: {prevAppendix.title}
+              </div>
+            </div>
+          </Link>
+        ) : (
+          <Link
+            href="/week/12"
+            className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+          >
+            <span>←</span>
+            <div>
+              <div className="text-xs text-gray-400 dark:text-gray-500">
+                Back to Course
+              </div>
+              <div className="font-medium">Week 12</div>
+            </div>
+          </Link>
+        )}
+
+        {nextAppendix ? (
+          <Link
+            href={`/appendix/${nextAppendix.letter.toLowerCase()}`}
+            className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors text-right"
+          >
+            <div>
+              <div className="text-xs text-gray-400 dark:text-gray-500">
+                Next
+              </div>
+              <div className="font-medium">
+                Appendix {nextAppendix.letter}: {nextAppendix.title}
+              </div>
+            </div>
+            <span>→</span>
+          </Link>
+        ) : (
+          <Link
+            href="/"
+            className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors text-right"
+          >
+            <div>
+              <div className="text-xs text-gray-400 dark:text-gray-500">
+                Done
+              </div>
+              <div className="font-medium">Back to Overview</div>
+            </div>
+            <span>→</span>
+          </Link>
+        )}
+      </nav>
+    </article>
+  );
+}
