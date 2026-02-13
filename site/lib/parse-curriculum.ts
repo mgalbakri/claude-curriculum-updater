@@ -124,9 +124,14 @@ function splitByH2(content: string): string[] {
   const sections: string[] = [];
   const lines = content.split("\n");
   let current: string[] = [];
+  let inCodeBlock = false;
 
   for (const line of lines) {
-    if (line.match(/^## /) && current.length > 0) {
+    // Track fenced code blocks so we don't split on ## inside them
+    if (line.match(/^```/)) {
+      inCodeBlock = !inCodeBlock;
+    }
+    if (!inCodeBlock && line.match(/^## /) && current.length > 0) {
       sections.push(current.join("\n"));
       current = [];
     }
