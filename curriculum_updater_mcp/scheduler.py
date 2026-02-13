@@ -460,10 +460,44 @@ def _auto_apply_gaps(
                 len(apply_result["applied"]),
                 curriculum_path,
             )
+            # Sync to site/curriculum.md so Vercel deploys pick up changes
+            _sync_to_site(curriculum_path, current_content)
         else:
             apply_result["errors"].append("Failed to save curriculum after applying updates")
 
     return apply_result
+
+
+# --- Site sync ---
+
+
+def _sync_to_site(curriculum_path: str, content: str) -> None:
+    """Copy updated curriculum to the Next.js site directory.
+
+    Keeps site/curriculum.md in sync so the next Vercel deploy
+    picks up auto-applied changes without a manual copy step.
+    Also syncs to ~/projects/curriculum/curriculum.md if it exists.
+    """
+    src = Path(curriculum_path).resolve()
+    repo_root = src.parent
+
+    # Sync to site/curriculum.md
+    site_copy = repo_root / "site" / "curriculum.md"
+    if site_copy.parent.is_dir():
+        try:
+            shutil.copy2(str(src), str(site_copy))
+            logger.info("Synced curriculum to %s", site_copy)
+        except Exception as e:
+            logger.warning("Failed to sync to site/: %s", e)
+
+    # Sync to ~/projects/curriculum/curriculum.md (secondary copy)
+    external_copy = Path.home() / "projects" / "curriculum" / "curriculum.md"
+    if external_copy.parent.is_dir() and external_copy.resolve() != src:
+        try:
+            shutil.copy2(str(src), str(external_copy))
+            logger.info("Synced curriculum to %s", external_copy)
+        except Exception as e:
+            logger.warning("Failed to sync to external copy: %s", e)
 
 
 # --- Daemon mode ---

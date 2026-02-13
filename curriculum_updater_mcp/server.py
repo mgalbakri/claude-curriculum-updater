@@ -60,6 +60,7 @@ from .scheduler import (
     save_scheduler_config,
     install_launchd,
     generate_crontab_entry,
+    _sync_to_site,
 )
 
 logger = logging.getLogger(__name__)
@@ -411,6 +412,8 @@ async def curriculum_apply_update(params: ApplyUpdateInput) -> str:
                 f"manual::{params.section_title[:50]}",
                 f"Week {params.week}: {params.section_title} ({params.action})"
             )
+            # Sync to site/ and external copies
+            _sync_to_site(params.curriculum_path, updated)
 
             return (
                 f"✅ **Curriculum updated successfully!**\n\n"
