@@ -325,7 +325,14 @@ async def run_scheduled_check() -> dict:
     # --- Build notification message ---
     if apply_result and apply_result.get("applied"):
         n_applied = len(apply_result["applied"])
-        title = f"📚 Curriculum: {n_applied} update(s) auto-applied"
+        deploy = apply_result.get("deploy", {})
+        deploy_ok = deploy.get("success", False)
+
+        if deploy_ok:
+            title = f"📚 Curriculum: {n_applied} update(s) applied & deployed"
+        else:
+            title = f"📚 Curriculum: {n_applied} update(s) applied (deploy needed)"
+
         lines = [f"📁 File updated: {curriculum_path}"]
         lines.append(f"💾 Backup: {apply_result.get('backup_path', 'N/A')}")
         lines.append("")
@@ -334,8 +341,18 @@ async def run_scheduled_check() -> dict:
             week_label = f"Week {item['week']}" if item["week"] > 0 else "Appendix"
             lines.append(f"  - [{week_label}] {item['section']} ({item['action']})")
         lines.append("")
-        lines.append(">> Re-upload curriculum.md to your claude.ai project <<")
-        short_msg = f"{n_applied} update(s) applied to curriculum.md. Re-upload to claude.ai!"
+        if deploy_ok:
+            lines.append(f"✅ Site deployed: {LIVE_SITE_URL}")
+        else:
+            deploy_err = deploy.get("error", "unknown")
+            lines.append(f"⚠️  Auto-deploy failed: {deploy_err}")
+            lines.append(f"   Manual deploy: cd site/ && npx vercel deploy --prod --yes --force")
+        lines.append(f"🌐 Live site: {LIVE_SITE_URL}")
+
+        if deploy_ok:
+            short_msg = f"{n_applied} update(s) applied & deployed! {LIVE_SITE_URL}"
+        else:
+            short_msg = f"{n_applied} update(s) applied. Deploy needed: {LIVE_SITE_URL}"
     else:
         title = f"📚 Curriculum: {len(filtered)} update(s) need attention"
         lines = []
@@ -344,6 +361,8 @@ async def run_scheduled_check() -> dict:
             lines.append(f"{emoji} [{g.priority.upper()}] {g.update.title[:80]}")
         if len(filtered) > 5:
             lines.append(f"... and {len(filtered) - 5} more")
+        lines.append("")
+        lines.append(f"🌐 Current site: {LIVE_SITE_URL}")
         short_msg = f"{len(filtered)} gap(s) found. Highest: {filtered[0].update.title[:60]}"
 
     message = "\n".join(lines)
@@ -351,12 +370,19 @@ async def run_scheduled_check() -> dict:
 
     # Prepend change summary to detail for email/log
     if apply_result and apply_result.get("applied"):
+        deploy = apply_result.get("deploy", {})
         change_summary = "CHANGES APPLIED TO CURRICULUM:\n\n"
         for item in apply_result["applied"]:
             week_label = f"Week {item['week']}" if item["week"] > 0 else "Appendix"
             change_summary += f"- [{week_label}] {item['section']} ({item['action']}): {item['reason']}\n"
         change_summary += f"\nBackup at: {apply_result.get('backup_path')}\n"
-        change_summary += "\nACTION REQUIRED: Re-upload curriculum.md to your claude.ai project.\n\n"
+        if deploy.get("success"):
+            change_summary += f"\n✅ SITE DEPLOYED AUTOMATICALLY\n🌐 {LIVE_SITE_URL}\n\n"
+        else:
+            change_summary += f"\n⚠️  AUTO-DEPLOY FAILED: {deploy.get('error', 'unknown')}\n"
+            change_summary += f"Manual deploy: cd {Path(curriculum_path).resolve().parent / 'site'} && npx vercel deploy --prod --yes --force\n"
+            change_summary += f"🌐 {LIVE_SITE_URL}\n\n"
+        change_summary += "ACTION REQUIRED: Re-upload curriculum.md to your claude.ai project.\n\n"
         gaps_detail = change_summary + gaps_detail
 
     # Always log
@@ -462,13 +488,18 @@ def _auto_apply_gaps(
             )
             # Sync to site/curriculum.md so Vercel deploys pick up changes
             _sync_to_site(curriculum_path, current_content)
+            # Auto-deploy to Vercel
+            deploy = _deploy_to_vercel(curriculum_path)
+            apply_result["deploy"] = deploy
         else:
             apply_result["errors"].append("Failed to save curriculum after applying updates")
 
     return apply_result
 
 
-# --- Site sync ---
+# --- Site sync & deploy ---
+
+LIVE_SITE_URL = "https://claude-code-mastery-iota.vercel.app"
 
 
 def _sync_to_site(curriculum_path: str, content: str) -> None:
@@ -498,6 +529,47 @@ def _sync_to_site(curriculum_path: str, content: str) -> None:
             logger.info("Synced curriculum to %s", external_copy)
         except Exception as e:
             logger.warning("Failed to sync to external copy: %s", e)
+
+
+def _deploy_to_vercel(curriculum_path: str) -> dict:
+    """Deploy the site to Vercel after curriculum updates.
+
+    Runs ``npx vercel deploy --prod --yes --force`` in the site/ directory.
+    Returns dict with: success, url, error.
+    """
+    src = Path(curriculum_path).resolve()
+    site_dir = src.parent / "site"
+
+    if not (site_dir / "package.json").is_file():
+        return {"success": False, "url": None, "error": "site/ directory not found"}
+
+    try:
+        result = subprocess.run(
+            ["npx", "vercel", "deploy", "--prod", "--yes", "--force"],
+            cwd=str(site_dir),
+            capture_output=True,
+            text=True,
+            timeout=300,  # 5 minute timeout
+            env={**os.environ, "PATH": os.environ.get("PATH", "") + ":/opt/homebrew/bin:/usr/local/bin"},
+        )
+        if result.returncode == 0:
+            # Vercel CLI prints the deployment URL on the last non-empty line
+            deploy_url = result.stdout.strip().splitlines()[-1].strip() if result.stdout.strip() else None
+            logger.info("Vercel deploy succeeded: %s", deploy_url or LIVE_SITE_URL)
+            return {"success": True, "url": deploy_url or LIVE_SITE_URL, "error": None}
+        else:
+            error_msg = result.stderr.strip()[:200] or result.stdout.strip()[:200]
+            logger.warning("Vercel deploy failed (exit %d): %s", result.returncode, error_msg)
+            return {"success": False, "url": None, "error": error_msg}
+    except subprocess.TimeoutExpired:
+        logger.warning("Vercel deploy timed out after 5 minutes")
+        return {"success": False, "url": None, "error": "Deploy timed out (5 min)"}
+    except FileNotFoundError:
+        logger.warning("npx/vercel not found in PATH")
+        return {"success": False, "url": None, "error": "npx/vercel CLI not found"}
+    except Exception as e:
+        logger.warning("Vercel deploy error: %s", e)
+        return {"success": False, "url": None, "error": str(e)}
 
 
 # --- Daemon mode ---
