@@ -1,10 +1,10 @@
 # Claude Code Mastery Curriculum v2
 ## February 2026 Edition
 
-**Student:** MGB
-**Start Date:** February 12, 2026
 **Duration:** 12 Weeks
 **Goal:** From zero coding knowledge to Claude Code expert
+**Prerequisites:** None. This curriculum assumes you have never written code or opened a terminal.
+**Cost:** Free. You need a computer (Mac, Windows, or Linux), an internet connection, and an Anthropic API key or Claude Pro/Max subscription.
 
 ---
 
@@ -14,24 +14,53 @@
 **Subtitle:** Your gateway to Claude Code
 **Objective:** Master command-line navigation, file management, and install Node.js.
 
+**What is a terminal?**
+Think of your computer as a house with many rooms (folders) full of drawers (files). Normally you click through windows and icons to open those rooms — that is the graphical interface. The terminal is a different door into the same house: instead of clicking, you type short text commands. It looks like a blank screen with a blinking cursor. That is all it is — a text-based way to talk to your computer.
+
+**Why do we need it?**
+Claude Code lives in the terminal. To use Claude Code, you need to be comfortable typing commands. The good news: you only need about 15 commands to get started, and we will learn them one at a time.
+
+**How to open the terminal:**
+- **Mac:** Open Finder → Applications → Utilities → Terminal. Or press Cmd+Space, type "Terminal", and press Enter.
+- **Windows:** Press the Windows key, type "PowerShell", and press Enter. (We recommend installing Windows Subsystem for Linux for the best experience with Claude Code.)
+- **Linux:** Press Ctrl+Alt+T, or search for "Terminal" in your applications menu.
+
 **Topics:**
-- What is a terminal and why developers use it
-- Opening Terminal on Mac (Applications → Utilities → Terminal)
-- Navigation: pwd, ls, cd, cd .., cd ~
-- File management: mkdir, touch, cp, mv, rm
-- Reading files: cat, less, head, tail
-- Environment: echo, export, PATH
-- Installing Node.js and npm
-- Package managers: Homebrew (Mac)
+- What is a terminal and why we use it (covered above)
+- Opening the terminal on Mac, Windows, and Linux
+- Navigation — finding your way around:
+  - `pwd` ("print working directory") — shows which folder you are currently in. Think of it like asking "Where am I right now?"
+  - `ls` ("list") — shows everything inside the current folder, like opening a drawer to see what is in it
+  - `cd` ("change directory") — moves you into a different folder, like walking from one room to another
+  - `cd ..` — goes back one level, like stepping out of a room into the hallway
+  - `cd ~` — takes you straight home, to your personal home folder
+- File management — creating and organizing:
+  - `mkdir` ("make directory") — creates a new folder
+  - `touch` — creates a new empty file
+  - `cp` ("copy") — copies a file or folder
+  - `mv` ("move") — moves or renames a file
+  - `rm` ("remove") — deletes a file (be careful — there is no undo!)
+- Reading files:
+  - `cat` — displays the entire contents of a file
+  - `less` — lets you scroll through a long file page by page
+  - `head` / `tail` — shows just the first or last few lines
+- Environment basics:
+  - `echo` — prints text to the screen (like a "say this" command)
+  - `export` — sets a variable that other programs can read
+  - `PATH` — the list of places your computer searches when you type a command name
+- Installing Node.js and npm — Node.js is the engine that runs Claude Code; npm is its package manager (think of it as an app store for code libraries)
+- Package managers: Homebrew (Mac) — an app store you use from the terminal
 
 **Activities:**
-- Navigate to your home directory and explore the file structure
-- Create a project folder structure for Bihar Fleet
-- Create, move, copy, and delete practice files
-- Install Node.js using Homebrew or nvm
-- Verify installation with node --version and npm --version
+- Open the terminal for the first time and type `pwd` to see where you are
+- Navigate to your home directory (`cd ~`) and explore with `ls`
+- Create your first project folder: `mkdir my-first-project` — this is the folder you will use throughout Weeks 1 through 3
+- Inside `my-first-project`, create subfolders: `mkdir notes`, `mkdir scripts`
+- Create, move, copy, and delete practice files to build muscle memory
+- Install Node.js using Homebrew (Mac) or nvm (any platform)
+- Verify installation with `node --version` and `npm --version`
 
-**Deliverable:** A project folder structure created entirely from the terminal with Node.js installed.
+**Deliverable:** A `my-first-project` folder (with subfolders) created entirely from the terminal, and Node.js installed and verified.
 **Skills:** Terminal navigation, file management, reading error messages, Node.js setup
 
 #### Terminal & Environment Updates (Feb 2026)
@@ -80,6 +109,12 @@ Source: https://www.npmjs.com/package/@anthropic-ai/claude-code/v/2.1.41
 **Subtitle:** Never lose your work again
 **Objective:** Understand how professional developers track changes and collaborate.
 
+**What is version control?**
+Imagine you are writing an important essay. You might save copies named "essay-draft1", "essay-draft2", "essay-final", "essay-FINAL-final". Version control does this automatically and much more elegantly. Git is a tool that takes a snapshot of your project every time you tell it to. You can go back to any snapshot, compare changes, and even work on different versions at the same time without losing anything. Think of it like Google Docs version history, but for your entire project folder.
+
+**Why Git?**
+Git is the industry standard — every professional developer uses it. And Claude Code works best when your project is tracked by Git, because it can see your history, create branches, and help you collaborate.
+
 **Topics:**
 - What is Git and why every developer uses it
 - git init, git add, git commit — the core cycle
@@ -89,14 +124,14 @@ Source: https://www.npmjs.com/package/@anthropic-ai/claude-code/v/2.1.41
 - GitHub Personal Access Tokens for Claude Code integration
 
 **Activities:**
-- Initialize a Git repository for your vessel database project
-- Practice the add → commit cycle with meaningful commit messages
-- Create a branch, make changes, merge it back
-- Create a GitHub account and push your first repository
-- Open and merge your first pull request
-- Generate a GitHub Personal Access Token
+- Inside your `my-first-project` folder, run `git init` to start tracking changes (this tells Git: "Watch this folder for me")
+- Practice the add → commit cycle: make a change, `git add` it (stage it), `git commit` it (save a snapshot) — with a clear message describing what you changed
+- Create a branch (a parallel copy of your project where you can experiment safely), make changes, then merge it back
+- Create a free GitHub account and push your project to the cloud — now your work is backed up online
+- Open and merge your first pull request (a pull request is how you propose changes for review before they become official)
+- Generate a GitHub Personal Access Token (a special password that lets Claude Code talk to GitHub on your behalf)
 
-**Deliverable:** Your vessel database project published on GitHub with at least 5 meaningful commits and 1 merged PR.
+**Deliverable:** Your `my-first-project` published on GitHub with at least 5 meaningful commits and 1 merged pull request.
 **Skills:** Git fundamentals, GitHub, branching, pull requests, authentication tokens
 
 #### Git Workflow Updates (Feb 2026)
@@ -122,7 +157,7 @@ Source: https://pypi.org/project/anthropic/0.79.0/
 
 **Topics:**
 - Installing Claude Code (npm install -g @anthropic-ai/claude-code)
-- Authentication: API key vs. Claude Pro/Max subscription
+- Authentication: API key vs. Claude Pro/Max subscription — an API key is like a personal password that proves you have permission to use Claude. You get one from the Anthropic website. Alternatively, a Claude Pro or Max subscription handles this automatically.
 - Anatomy of a session: prompt → plan → execute → review
 - Plan mode: always start here
 - Reading diffs: understanding what Claude changed
@@ -132,7 +167,7 @@ Source: https://pypi.org/project/anthropic/0.79.0/
 
 **Activities:**
 - Install Claude Code and authenticate
-- Run your first session: ask Claude to build a simple vessel data file
+- Run your first session: ask Claude to build a simple to-do list app (for example: "Create a to-do list where I can add and remove tasks")
 - Practice Plan mode: describe what you want before Claude codes
 - Review a diff and understand every change
 - Use /compact during a long session
@@ -198,23 +233,33 @@ On exit, Claude Code now shows a session resume hint so you can continue your co
 **Subtitle:** From idea to deployed tool
 **Objective:** Build a complete, working web application from scratch using Claude Code.
 
+**What are we building?**
+This week you will build your first real web application — a personal task manager. Think of it as a to-do list app that lives on the internet, so you (or anyone you share the link with) can access it from any browser. We will use a few tools to build it, and here is what each one does in plain English:
+
+- **React** — A popular toolkit for building web pages. Instead of writing one giant page, React lets you build small, reusable pieces (called "components") and snap them together like LEGO bricks.
+- **Next.js** — A framework built on top of React that handles the behind-the-scenes plumbing: routing (deciding which page to show when you click a link), loading data, and more.
+- **Tailwind CSS** — A styling system that lets you make things look good by adding short class names directly in your code. Instead of writing separate style files, you describe the look right where you build the component.
+- **Vercel** — A free hosting platform. When you "deploy" to Vercel, your app gets a real URL that anyone in the world can visit.
+
+You do not need to memorize these definitions. Claude Code knows all of them deeply, and you will direct it using plain English.
+
 **Topics:**
-- What is React and Next.js (conceptual overview)
-- Project scaffolding with Claude Code
-- Components: building blocks of modern web apps
-- Styling with Tailwind CSS
-- Deployment to Vercel
-- Environment variables and configuration
+- React and Next.js (see the overview above)
+- Project scaffolding with Claude Code — asking Claude to set up your project structure
+- Components: building blocks of modern web apps (each piece of your page is a component)
+- Styling with Tailwind CSS — making it look good
+- Deployment to Vercel — putting your app on the internet
+- Environment variables and configuration — settings your app needs to run (like API keys)
 
 **Activities:**
-- Ask Claude Code to scaffold a Next.js project for Bihar Fleet vessel tracking
-- Build a vessel list component showing all 23 ships
-- Add search and filter functionality
+- Ask Claude Code to scaffold a Next.js project for a personal task manager (for example: "Create a Next.js app where I can add, complete, and delete tasks")
+- Build a task list component that displays all your tasks with their status
+- Add search and filter functionality (find tasks by name, filter by complete/incomplete)
 - Style the application with Tailwind CSS
 - Deploy to Vercel for the first time
-- Share the live URL with someone
+- Share the live URL with a friend or family member and ask them to try it
 
-**Deliverable:** A deployed vessel tracking web app on Vercel showing Bihar Fleet's 23 vessels.
+**Deliverable:** A deployed personal task manager on Vercel where you can add, complete, search, and delete tasks.
 **Skills:** React/Next.js basics, component thinking, Tailwind CSS, Vercel deployment
 
 ---
@@ -222,6 +267,9 @@ On exit, Claude Code now shows a session resume hint so you can continue your co
 ### WEEK 5: Databases & APIs
 **Subtitle:** Where your data lives
 **Objective:** Connect your application to a real database and understand data flow.
+
+**What is a database?**
+Think of a database as a super-powered spreadsheet. Right now, if you close your task manager app and reopen it, all your tasks disappear — they only lived in your browser's memory. A database stores your data permanently on a server, so it is always there when you come back. Supabase is a free service that gives you a database in the cloud — no need to set up your own server.
 
 **Topics:**
 - What is a database and why you need one
@@ -233,14 +281,14 @@ On exit, Claude Code now shows a session resume hint so you can continue your co
 - Row Level Security basics
 
 **Activities:**
-- Set up a Supabase project
-- Design a schema for vessel tracking data
-- Ask Claude Code to create API routes
-- Build forms to add and edit vessel data
-- Implement all CRUD operations
-- Add basic data validation
+- Set up a free Supabase project (Supabase gives you a database and handles the server side for you)
+- Design a schema for your task manager — a schema is the structure of your data, like deciding what columns a spreadsheet has (task name, status, due date, etc.)
+- Ask Claude Code to create API routes (the behind-the-scenes paths your app uses to talk to the database)
+- Build forms to add and edit tasks
+- Implement all CRUD operations (Create, Read, Update, Delete — the four basic things you can do with data)
+- Add basic data validation (making sure users cannot submit empty tasks, for example)
 
-**Deliverable:** Your vessel tracker connected to Supabase with full CRUD operations.
+**Deliverable:** Your task manager connected to Supabase with full CRUD operations — tasks are now saved permanently.
 **Skills:** Database concepts, Supabase, SQL basics, API routes, CRUD operations
 
 #### Cowork: Claude Code for Desktop
@@ -270,12 +318,12 @@ On exit, Claude Code now shows a session resume hint so you can continue your co
 - The /code-review workflow
 
 **Activities:**
-- Add Supabase Auth to your vessel tracker
+- Add Supabase Auth to your task manager (so each user has their own private tasks)
 - Create login and signup pages
-- Protect dashboard routes from unauthorized access
-- Build a dashboard with vessel status overview
-- Add charts showing fleet utilization
-- Make the dashboard responsive
+- Protect dashboard routes from unauthorized access (only logged-in users can see their tasks)
+- Build a dashboard showing task statistics: total tasks, completed vs. pending, tasks due soon
+- Add charts visualizing your productivity (tasks completed per day, category breakdown)
+- Make the dashboard responsive (looks good on both phone and desktop)
 - Run /code-review on your codebase
 
 **Deliverable:** A secure, authenticated dashboard with data visualization.
@@ -304,13 +352,13 @@ On exit, Claude Code now shows a session resume hint so you can continue your co
 - The /code-review workflow
 
 **Activities:**
-- Ask Claude to write tests for your dashboard
+- Ask Claude to write tests for your task manager
 - Run the tests and read the output
 - Find a bug → write a test → fix the bug
 - Use /code-review to audit your project
 - Add test commands to CLAUDE.md
 
-**Deliverable:** Your fleet app with a test suite that runs automatically.
+**Deliverable:** Your task manager app with a test suite that runs automatically.
 **Skills:** Testing concepts, verification loops, quality assurance
 
 ---
@@ -328,13 +376,18 @@ On exit, Claude Code now shows a session resume hint so you can continue your co
 - Documentation: READMEs that matter
 
 **Activities:**
-- Choose your second project (Alshams Energy fuel tracking, gold price monitor, or workout tracker)
-- Write a detailed project brief
-- Build in phases: data → logic → UI → polish
-- Deploy to Vercel with documentation
+- Choose your second project — pick something you personally care about! Suggestions:
+  - A **habit tracker** (track daily habits like exercise, reading, water intake)
+  - A **book reading log** (track books you have read, want to read, with ratings and notes)
+  - A **local weather dashboard** (pull weather data for your city and display forecasts)
+  - A **recipe collection** (store and search your favorite recipes by ingredient or cuisine)
+  - Or any idea that excites you — the best project is one you will actually use
+- Write a detailed project brief describing what it does, who it is for, and what data it needs
+- Build in phases: data first, then logic, then the user interface, then polish
+- Deploy to Vercel with a professional README
 - Self-review using /code-review
 
-**Deliverable:** A second deployed application solving a real business problem.
+**Deliverable:** A second deployed application solving a real problem that matters to you.
 **Skills:** Project scoping, phased development, external APIs, data visualization
 
 #### Claude Developer Platform & Web Access
@@ -374,7 +427,7 @@ On exit, Claude Code now shows a session resume hint so you can continue your co
 - The `/hooks` menu for interactive hook management
 
 **Activities:**
-- Create a custom skill for your domain (maritime or energy) with supporting files
+- Create a custom skill for your project (for example, a "task-summary" skill that generates a weekly task report, or a "recipe-finder" skill for a recipe app) with supporting files
 - Create a skill with `context: fork` that runs in an Explore subagent
 - Write a `PreToolUse` command hook that validates Bash commands before execution
 - Write a `Stop` prompt hook that checks if all tasks are complete before Claude stops
@@ -545,7 +598,7 @@ As of v2.1.32, Claude Code **automatically records and recalls memories** as it 
 
 **Activities:**
 - Review the curriculum-updater MCP server you already built
-- Build a second MCP server (vessel position lookup or fuel price API)
+- Build a second MCP server (for example, a weather data lookup, a book search API, or a task statistics endpoint)
 - Connect both to Claude Code using `claude mcp add`
 - Use MCP tools in a real workflow
 - Explore community MCP servers (GitHub, Slack, etc.)
@@ -667,7 +720,7 @@ As of v2.1.32, Claude Code **automatically records and recalls memories** as it 
 - CLAUDE.md mastery: comprehensive project documentation
 
 **Activities:**
-- Plan your capstone (recommended: comprehensive Bihar Fleet management system)
+- Plan your capstone — a production-quality application of your choice that showcases everything you have learned. This could be an enhanced version of your task manager, an entirely new app, or a combination of ideas from your previous projects.
 - Build using agent teams and MCP integrations
 - Implement full Git workflow with feature branches
 - Set up CI/CD pipeline
