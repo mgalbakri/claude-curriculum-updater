@@ -30,9 +30,23 @@ from typing import Optional
 
 import httpx
 
-from .cache import get_cache_dir, load_curriculum_state
+from .cache import (
+    get_cache_dir,
+    load_curriculum_state,
+    mark_update_applied,
+    create_curriculum_backup,
+    get_update_key,
+)
 from .sources import fetch_all_updates
-from .analyzer import analyze_gaps, load_curriculum_file, CURRICULUM_TOPIC_MAP
+from .analyzer import (
+    analyze_gaps,
+    load_curriculum_file,
+    save_curriculum_file,
+    convert_gaps_to_updates,
+    apply_single_update,
+    CurriculumGap,
+    CURRICULUM_TOPIC_MAP,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -71,6 +85,9 @@ def load_scheduler_config() -> dict:
         "smtp_password": None,
         "email_from": None,
         "min_priority": "high",  # Only notify for this priority and above
+        "auto_apply": False,  # Auto-apply high-priority updates to curriculum file
+        "auto_apply_priority": "high",  # Only auto-apply gaps at this priority
+        "auto_apply_max_per_run": 5,  # Safety cap per run
         "last_scheduled_check": None,
         "enabled": True,
     }
@@ -168,7 +185,7 @@ async def send_email_notification(
 # --- Check & notify ---
 
 async def run_scheduled_check() -> dict:
-    """Run a single check cycle: fetch updates, analyse gaps, send notifications.
+    """Run a single check cycle: fetch updates, analyse gaps, auto-apply, notify.
 
     Returns a summary dict with results.
     """
@@ -179,6 +196,8 @@ async def run_scheduled_check() -> dict:
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "gaps_found": 0,
         "high_priority": 0,
+        "auto_applied": 0,
+        "backup_path": None,
         "notifications_sent": [],
         "errors": [],
     }
@@ -219,24 +238,63 @@ async def run_scheduled_check() -> dict:
         save_scheduler_config(config)
         return result
 
-    # Build notification message
-    title = f"📚 Curriculum: {len(filtered)} update(s) need attention"
-    lines = []
-    for g in filtered[:5]:
-        emoji = {"high": "🔴", "medium": "🟡", "low": "🟢"}.get(g.priority, "")
-        lines.append(f"{emoji} [{g.priority.upper()}] {g.update.title[:80]}")
-    if len(filtered) > 5:
-        lines.append(f"... and {len(filtered) - 5} more")
-    message = "\n".join(lines)
+    # --- Auto-apply if enabled ---
+    apply_result = None
+    if config.get("auto_apply", False) and curriculum_path and curriculum_content:
+        try:
+            apply_result = _auto_apply_gaps(
+                filtered, curriculum_path, curriculum_content, config
+            )
+            result["auto_applied"] = len(apply_result.get("applied", []))
+            result["backup_path"] = apply_result.get("backup_path")
+            if apply_result.get("errors"):
+                result["errors"].extend(apply_result["errors"])
+        except Exception as e:
+            logger.exception("Auto-apply failed: %s", e)
+            result["errors"].append(f"Auto-apply failed: {e}")
 
+    # --- Build notification message ---
+    if apply_result and apply_result.get("applied"):
+        n_applied = len(apply_result["applied"])
+        title = f"📚 Curriculum: {n_applied} update(s) auto-applied"
+        lines = [f"📁 File updated: {curriculum_path}"]
+        lines.append(f"💾 Backup: {apply_result.get('backup_path', 'N/A')}")
+        lines.append("")
+        lines.append("Changes made:")
+        for item in apply_result["applied"]:
+            week_label = f"Week {item['week']}" if item["week"] > 0 else "Appendix"
+            lines.append(f"  - [{week_label}] {item['section']} ({item['action']})")
+        lines.append("")
+        lines.append(">> Re-upload curriculum.md to your claude.ai project <<")
+        short_msg = f"{n_applied} update(s) applied to curriculum.md. Re-upload to claude.ai!"
+    else:
+        title = f"📚 Curriculum: {len(filtered)} update(s) need attention"
+        lines = []
+        for g in filtered[:5]:
+            emoji = {"high": "🔴", "medium": "🟡", "low": "🟢"}.get(g.priority, "")
+            lines.append(f"{emoji} [{g.priority.upper()}] {g.update.title[:80]}")
+        if len(filtered) > 5:
+            lines.append(f"... and {len(filtered) - 5} more")
+        short_msg = f"{len(filtered)} gap(s) found. Highest: {filtered[0].update.title[:60]}"
+
+    message = "\n".join(lines)
     gaps_detail = "\n\n".join(g.suggestion for g in filtered)
+
+    # Prepend change summary to detail for email/log
+    if apply_result and apply_result.get("applied"):
+        change_summary = "CHANGES APPLIED TO CURRICULUM:\n\n"
+        for item in apply_result["applied"]:
+            week_label = f"Week {item['week']}" if item["week"] > 0 else "Appendix"
+            change_summary += f"- [{week_label}] {item['section']} ({item['action']}): {item['reason']}\n"
+        change_summary += f"\nBackup at: {apply_result.get('backup_path')}\n"
+        change_summary += "\nACTION REQUIRED: Re-upload curriculum.md to your claude.ai project.\n\n"
+        gaps_detail = change_summary + gaps_detail
 
     # Always log
     _log_notification(title, gaps_detail)
 
     # Send notifications
     if config.get("notify_macos", True):
-        short_msg = f"{len(filtered)} gap(s) found. Highest: {filtered[0].update.title[:60]}"
         if send_macos_notification(title, short_msg):
             result["notifications_sent"].append("macos")
 
@@ -252,6 +310,91 @@ async def run_scheduled_check() -> dict:
     save_scheduler_config(config)
 
     return result
+
+
+# --- Auto-apply engine ---
+
+
+def _auto_apply_gaps(
+    gaps: list,
+    curriculum_path: str,
+    curriculum_content: str,
+    config: dict,
+) -> dict:
+    """Auto-apply high-priority gaps to the curriculum file.
+
+    Returns dict with: applied, backup_path, errors, content_after.
+    """
+    apply_result: dict = {
+        "applied": [],
+        "backup_path": None,
+        "errors": [],
+        "content_after": curriculum_content,
+    }
+
+    # Filter to auto-apply priority level
+    apply_priority = config.get("auto_apply_priority", "high")
+    priority_levels = {"high": 0, "medium": 1, "low": 2}
+    apply_level = priority_levels.get(apply_priority, 0)
+    eligible = [
+        g for g in gaps
+        if priority_levels.get(g.priority, 2) <= apply_level
+    ]
+
+    # Safety cap
+    max_per_run = config.get("auto_apply_max_per_run", 5)
+    eligible = eligible[:max_per_run]
+
+    if not eligible:
+        return apply_result
+
+    # Convert gaps to structured updates
+    updates = convert_gaps_to_updates(eligible)
+    if not updates:
+        return apply_result
+
+    # Create backup before modifying
+    backup_path = create_curriculum_backup(curriculum_path)
+    if backup_path is None:
+        apply_result["errors"].append("Failed to create backup — aborting auto-apply")
+        return apply_result
+    apply_result["backup_path"] = backup_path
+
+    # Apply each update sequentially
+    current_content = curriculum_content
+    for cu in updates:
+        try:
+            current_content = apply_single_update(current_content, cu)
+            apply_result["applied"].append({
+                "week": cu.week,
+                "section": cu.section,
+                "action": cu.action,
+                "reason": cu.reason,
+            })
+            # Track in cache
+            update_key = f"auto::{cu.section[:50]}"
+            mark_update_applied(
+                update_key,
+                f"Week {cu.week}: {cu.section} ({cu.action})"
+            )
+            logger.info("Auto-applied: Week %d — %s", cu.week, cu.section)
+        except Exception as e:
+            logger.warning("Failed to auto-apply '%s': %s", cu.section, e)
+            apply_result["errors"].append(f"Failed: {cu.section} — {e}")
+
+    # Save the modified curriculum
+    if apply_result["applied"]:
+        if save_curriculum_file(curriculum_path, current_content):
+            apply_result["content_after"] = current_content
+            logger.info(
+                "Auto-applied %d update(s) to %s",
+                len(apply_result["applied"]),
+                curriculum_path,
+            )
+        else:
+            apply_result["errors"].append("Failed to save curriculum after applying updates")
+
+    return apply_result
 
 
 # --- Daemon mode ---
@@ -280,10 +423,27 @@ async def run_daemon(interval_hours: Optional[float] = None):
 
 # --- macOS launchd integration ---
 
-def generate_launchd_plist(interval_hours: int = 24) -> str:
-    """Generate a macOS launchd plist for periodic checks."""
+def generate_launchd_plist(interval_hours: int = 24, weekly: bool = False) -> str:
+    """Generate a macOS launchd plist for periodic checks.
+
+    If weekly=True, uses StartCalendarInterval for Monday 9 AM instead of StartInterval.
+    """
     python_path = sys.executable
-    interval_seconds = interval_hours * 3600
+
+    if weekly:
+        schedule_block = """    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Weekday</key>
+        <integer>1</integer>
+        <key>Hour</key>
+        <integer>9</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>"""
+    else:
+        interval_seconds = interval_hours * 3600
+        schedule_block = f"""    <key>StartInterval</key>
+    <integer>{interval_seconds}</integer>"""
 
     return f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -298,8 +458,7 @@ def generate_launchd_plist(interval_hours: int = 24) -> str:
         <string>curriculum_updater_mcp.scheduler</string>
         <string>--once</string>
     </array>
-    <key>StartInterval</key>
-    <integer>{interval_seconds}</integer>
+{schedule_block}
     <key>StandardOutPath</key>
     <string>{get_cache_dir()}/scheduler.stdout.log</string>
     <key>StandardErrorPath</key>
@@ -310,16 +469,17 @@ def generate_launchd_plist(interval_hours: int = 24) -> str:
 </plist>"""
 
 
-def install_launchd(interval_hours: int = 24) -> str:
+def install_launchd(interval_hours: int = 24, weekly: bool = False) -> str:
     """Install a macOS launchd agent for periodic checks.
 
+    If weekly=True, schedules for Monday 9 AM.
     Returns a message describing what happened.
     """
     plist_dir = Path.home() / "Library" / "LaunchAgents"
     plist_dir.mkdir(parents=True, exist_ok=True)
     plist_path = plist_dir / f"{LAUNCHD_LABEL}.plist"
 
-    plist_content = generate_launchd_plist(interval_hours)
+    plist_content = generate_launchd_plist(interval_hours, weekly=weekly)
     plist_path.write_text(plist_content, encoding="utf-8")
 
     # Unload old version if present
@@ -336,10 +496,12 @@ def install_launchd(interval_hours: int = 24) -> str:
     )
 
     if result.returncode == 0:
+        schedule_desc = "every Monday at 9:00 AM" if weekly else f"every {interval_hours} hour(s)"
         return (
             f"✅ Installed macOS background checker!\n"
             f"- Plist: {plist_path}\n"
-            f"- Interval: every {interval_hours} hour(s)\n"
+            f"- Schedule: {schedule_desc}\n"
+            f"- Auto-Apply: {load_scheduler_config().get('auto_apply', False)}\n"
             f"- Logs: {get_cache_dir()}/scheduler.*.log\n\n"
             f"To uninstall: launchctl unload {plist_path}"
         )
@@ -384,10 +546,18 @@ def main():
     parser.add_argument("--install-launchd", action="store_true", help="Install macOS launchd agent")
     parser.add_argument("--show-crontab", action="store_true", help="Show crontab entry")
     parser.add_argument("--interval", type=int, default=24, help="Check interval in hours (default: 24)")
+    parser.add_argument("--weekly", action="store_true", help="Use weekly schedule (Mondays at 9 AM)")
+    parser.add_argument("--auto-apply", action="store_true", help="Enable auto-applying high-priority updates")
     args = parser.parse_args()
 
+    if args.auto_apply:
+        config = load_scheduler_config()
+        config["auto_apply"] = True
+        save_scheduler_config(config)
+        print("✅ Auto-apply enabled")
+
     if args.install_launchd:
-        print(install_launchd(args.interval))
+        print(install_launchd(args.interval, weekly=args.weekly))
     elif args.show_crontab:
         print(generate_crontab_entry(args.interval))
     elif args.daemon:

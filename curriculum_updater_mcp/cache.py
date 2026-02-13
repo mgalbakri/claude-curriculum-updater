@@ -2,6 +2,7 @@
 
 import json
 import logging
+import shutil
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
@@ -149,6 +150,42 @@ def save_curriculum_state(state: dict) -> None:
     _state_instance = state
     state_file = get_cache_dir() / CURRICULUM_STATE_FILE
     state_file.write_text(json.dumps(state, indent=2), encoding="utf-8")
+
+
+MAX_BACKUPS = 10
+
+
+def create_curriculum_backup(curriculum_path: str) -> Optional[str]:
+    """Create a timestamped backup of the curriculum file.
+
+    Returns the backup file path, or None if backup failed.
+    Keeps at most MAX_BACKUPS backups, deleting the oldest.
+    """
+    try:
+        src = Path(curriculum_path).expanduser().resolve()
+        if not src.exists():
+            logger.warning("Cannot backup: file not found at %s", src)
+            return None
+
+        timestamp = datetime.now().strftime("%Y-%m-%d-%H%M%S")
+        backup_path = src.parent / f"{src.name}.backup.{timestamp}"
+
+        shutil.copy2(str(src), str(backup_path))
+        logger.info("Created curriculum backup: %s", backup_path)
+
+        # Clean up old backups — keep only the newest MAX_BACKUPS
+        pattern = f"{src.name}.backup.*"
+        backups = sorted(src.parent.glob(pattern))
+        if len(backups) > MAX_BACKUPS:
+            for old_backup in backups[:-MAX_BACKUPS]:
+                old_backup.unlink()
+                logger.debug("Deleted old backup: %s", old_backup)
+
+        return str(backup_path)
+
+    except Exception as e:
+        logger.error("Failed to create curriculum backup: %s", e)
+        return None
 
 
 def _trim_seen(cache: dict) -> None:

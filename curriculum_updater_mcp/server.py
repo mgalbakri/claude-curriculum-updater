@@ -37,6 +37,8 @@ from .analyzer import (
     generate_update_report,
     load_curriculum_file,
     save_curriculum_file,
+    apply_single_update,
+    CurriculumUpdate,
     CURRICULUM_TOPIC_MAP,
 )
 from .cache import (
@@ -390,62 +392,21 @@ async def curriculum_apply_update(params: ApplyUpdateInput) -> str:
         if current is None:
             return f"Error: Could not read curriculum file at '{params.curriculum_path}'."
 
-        # Build the update block — insert content as-is, no wrapper
-        update_block = f"\n\n{params.content}\n"
-
-        if params.action == "append" and params.week > 0:
-            # Find the week section header
-            week_pattern = re.compile(
-                rf'^(#{1,3})\s+(?:WEEK|Week|week)\s+{params.week}\b',
-                re.MULTILINE,
-            )
-            match = week_pattern.search(current)
-
-            if not match:
-                updated = current + update_block
-            else:
-                week_pos = match.start()
-
-                # Find next week/phase/appendix header after this week
-                next_section = re.compile(
-                    rf'^#{1,3}\s+(?:(?:WEEK|Week|week)\s+{params.week + 1}\b|(?:Phase|PHASE|Appendix|APPENDIX))',
-                    re.MULTILINE,
-                )
-                next_match = next_section.search(current, match.end())
-                next_boundary = next_match.start() if next_match else len(current)
-
-                # Find last --- separator before boundary
-                sep_pos = current.rfind("\n---", week_pos, next_boundary)
-
-                insert_pos = sep_pos if sep_pos != -1 else next_boundary
-                updated = current[:insert_pos] + update_block + current[insert_pos:]
-
-        elif params.action == "new" or params.week == 0:
-            appendix_block = f"\n\n---\n\n### Appendix: {params.section_title}\n\n"
-            appendix_block += params.content + "\n"
-            updated = current + appendix_block
-
-        elif params.action == "replace":
-            # Find the section title (case-insensitive)
-            section_idx = current.lower().find(params.section_title.lower())
-            if section_idx == -1:
-                return f"Error: Could not find section '{params.section_title}' in the curriculum file. Use action='append' instead."
-
-            # Find the next markdown header after the section title
-            next_header = re.compile(r'^#{1,3}\s+', re.MULTILINE)
-            search_start = section_idx + len(params.section_title)
-            next_match = next_header.search(current, search_start)
-
-            if next_match:
-                updated = current[:section_idx] + update_block + "\n" + current[next_match.start():]
-            else:
-                updated = current[:section_idx] + update_block
-        else:
-            return f"Error: Invalid action '{params.action}'. Use 'append', 'replace', or 'new'."
+        # Build a CurriculumUpdate and apply it
+        cu = CurriculumUpdate(
+            week=params.week,
+            section=params.section_title,
+            action=params.action,
+            content=params.content,
+            reason=params.reason,
+        )
+        try:
+            updated = apply_single_update(current, cu)
+        except ValueError as e:
+            return f"Error: {e}"
 
         # Save the updated file
         if save_curriculum_file(params.curriculum_path, updated):
-            # Track the applied update
             mark_update_applied(
                 f"manual::{params.section_title[:50]}",
                 f"Week {params.week}: {params.section_title} ({params.action})"
@@ -646,6 +607,10 @@ class SchedulerInput(BaseModel):
         default=None,
         description="Minimum priority to notify: 'high', 'medium', or 'low'",
     )
+    auto_apply: Optional[bool] = Field(
+        default=None,
+        description="Enable/disable auto-applying high-priority updates to the curriculum file",
+    )
 
 
 @mcp.tool(
@@ -680,11 +645,19 @@ async def curriculum_scheduler(params: SchedulerInput) -> str:
     try:
         if params.action == "check":
             result = await run_scheduled_check()
+            auto_info = ""
+            if result.get("auto_applied", 0) > 0:
+                auto_info = (
+                    f"- **Auto-Applied:** {result['auto_applied']} update(s)\n"
+                    f"- **Backup:** {result.get('backup_path', 'N/A')}\n"
+                    f"- **Action Required:** Re-upload curriculum.md to claude.ai\n"
+                )
             return (
                 f"# Scheduled Check Result\n\n"
                 f"- **Timestamp:** {result['timestamp']}\n"
                 f"- **Gaps Found:** {result['gaps_found']}\n"
                 f"- **High Priority:** {result['high_priority']}\n"
+                f"{auto_info}"
                 f"- **Notifications Sent:** {', '.join(result['notifications_sent']) or 'none'}\n"
                 f"- **Errors:** {len(result['errors'])}\n"
             )
@@ -700,6 +673,7 @@ async def curriculum_scheduler(params: SchedulerInput) -> str:
                 f"- **macOS Notifications:** {config.get('notify_macos', True)}\n"
                 f"- **Slack Webhook:** {'configured' if config.get('notify_slack_webhook') else 'not set'}\n"
                 f"- **Email:** {config.get('notify_email') or 'not set'}\n"
+                f"- **Auto-Apply:** {config.get('auto_apply', False)}\n"
                 f"- **Last Check:** {config.get('last_scheduled_check', 'never')}\n"
             )
 
@@ -713,12 +687,19 @@ async def curriculum_scheduler(params: SchedulerInput) -> str:
                 config["notify_slack_webhook"] = params.slack_webhook
             if params.min_priority is not None:
                 config["min_priority"] = params.min_priority
+            if params.auto_apply is not None:
+                config["auto_apply"] = params.auto_apply
             save_scheduler_config(config)
             return f"✅ Scheduler configuration updated successfully."
 
         elif params.action == "install":
-            interval = params.check_interval_hours or 24
-            return install_launchd(interval)
+            interval = params.check_interval_hours or 168  # Default weekly
+            # Enable auto-apply if requested
+            if params.auto_apply:
+                config = load_scheduler_config()
+                config["auto_apply"] = True
+                save_scheduler_config(config)
+            return install_launchd(interval, weekly=(interval >= 168))
 
         elif params.action == "crontab":
             interval = params.check_interval_hours or 24

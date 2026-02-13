@@ -654,3 +654,143 @@ def save_curriculum_file(path: str, content: str) -> bool:
     except Exception as e:
         logger.error("Failed to save curriculum file %s: %s", path, e)
         return False
+
+
+# --- Auto-Apply Logic ---
+
+
+def _generate_update_content(gap: "CurriculumGap") -> Optional[CurriculumUpdate]:
+    """Convert a CurriculumGap into a structured CurriculumUpdate for auto-apply.
+
+    Returns None if the gap cannot be meaningfully converted.
+    """
+    update = gap.update
+    date_str = update.date[:10] if update.date else "unknown"
+    title = update.title[:100].strip()
+    summary = update.content[:150].strip()
+    if summary and not summary.endswith("."):
+        summary = summary.rsplit(" ", 1)[0] + "..."
+
+    week = gap.affected_weeks[0] if gap.affected_weeks else 0
+
+    if gap.gap_type == "deprecated":
+        content = (
+            f"> **Deprecation Notice ({date_str}):** {title}. "
+            f"{summary} "
+            f"[Source]({update.url})"
+        )
+        section = f"Deprecation: {title[:60]}"
+        action = "append"
+
+    elif gap.gap_type == "new_feature":
+        content = (
+            f"**{title}** (added {date_str})\n"
+            f"{summary}\n"
+            f"Source: {update.url}"
+        )
+        section = title[:80]
+        action = "append" if week > 0 else "new"
+
+    elif gap.gap_type == "updated":
+        content = (
+            f"**Update ({date_str}):** {title}. "
+            f"{summary} "
+            f"[Source]({update.url})"
+        )
+        section = f"Update: {title[:60]}"
+        action = "append"
+
+    elif gap.gap_type == "new_topic":
+        content = (
+            f"**{title}** (added {date_str})\n"
+            f"{summary}\n"
+            f"Source: {update.url}"
+        )
+        section = title[:80]
+        action = "new"
+        week = 0
+
+    else:
+        return None
+
+    return CurriculumUpdate(
+        week=week,
+        section=section,
+        action=action,
+        content=content,
+        reason=f"Auto-applied: {gap.gap_type} from {update.source}",
+    )
+
+
+def convert_gaps_to_updates(gaps: list["CurriculumGap"]) -> list[CurriculumUpdate]:
+    """Batch-convert CurriculumGap objects into CurriculumUpdate objects."""
+    updates = []
+    for gap in gaps:
+        cu = _generate_update_content(gap)
+        if cu is not None:
+            updates.append(cu)
+    return updates
+
+
+def apply_single_update(curriculum_content: str, update: CurriculumUpdate) -> str:
+    """Apply a single CurriculumUpdate to curriculum content.
+
+    Returns the modified content string.
+    Raises ValueError if the update cannot be applied.
+    """
+    update_block = f"\n\n{update.content}\n"
+
+    if update.action == "append" and update.week > 0:
+        week_pattern = re.compile(
+            rf'^(#{{1,3}})\s+(?:WEEK|Week|week)\s+{update.week}\b',
+            re.MULTILINE,
+        )
+        match = week_pattern.search(curriculum_content)
+
+        if not match:
+            # Week not found — append at end
+            return curriculum_content + update_block
+
+        week_pos = match.start()
+
+        # Find next week/phase/appendix header after this week
+        next_section = re.compile(
+            rf'^#{{1,3}}\s+(?:(?:WEEK|Week|week)\s+{update.week + 1}\b|(?:Phase|PHASE|Appendix|APPENDIX))',
+            re.MULTILINE,
+        )
+        next_match = next_section.search(curriculum_content, match.end())
+        next_boundary = next_match.start() if next_match else len(curriculum_content)
+
+        # Find last --- separator before boundary
+        sep_pos = curriculum_content.rfind("\n---", week_pos, next_boundary)
+        insert_pos = sep_pos if sep_pos != -1 else next_boundary
+
+        return curriculum_content[:insert_pos] + update_block + curriculum_content[insert_pos:]
+
+    elif update.action == "new" or update.week == 0:
+        appendix_block = f"\n\n---\n\n### Appendix: {update.section}\n\n{update.content}\n"
+        return curriculum_content + appendix_block
+
+    elif update.action == "replace":
+        section_idx = curriculum_content.lower().find(update.section.lower())
+        if section_idx == -1:
+            raise ValueError(
+                f"Could not find section '{update.section}' in curriculum. "
+                f"Use action='append' instead."
+            )
+
+        next_header = re.compile(r'^#{1,3}\s+', re.MULTILINE)
+        search_start = section_idx + len(update.section)
+        next_match = next_header.search(curriculum_content, search_start)
+
+        if next_match:
+            return (
+                curriculum_content[:section_idx]
+                + update_block + "\n"
+                + curriculum_content[next_match.start():]
+            )
+        else:
+            return curriculum_content[:section_idx] + update_block
+
+    else:
+        raise ValueError(f"Invalid action '{update.action}'. Use 'append', 'replace', or 'new'.")
