@@ -8,11 +8,11 @@
       "Bash(git commit -m \"$\\(cat <<''EOF''\nInitial commit: Curriculum Updater MCP Server\n\nMCP server that monitors Claude Code updates from multiple sources\n\\(X, Anthropic blog, changelog, docs\\) and analyzes gaps against a\n12-week learning curriculum.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
       "Bash(git rm:*)",
       "Bash(git commit:*)",
-      "mcp__curriculum_updater__curriculum_status",
-      "mcp__curriculum_updater__curriculum_fetch_updates",
-      "mcp__curriculum_updater__curriculum_set_path",
-      "mcp__curriculum_updater__curriculum_analyze_gaps",
-      "mcp__curriculum_updater__curriculum_apply_update"
+      "mcp__claude_code_mastery__curriculum_status",
+      "mcp__claude_code_mastery__curriculum_fetch_updates",
+      "mcp__claude_code_mastery__curriculum_set_path",
+      "mcp__claude_code_mastery__curriculum_analyze_gaps",
+      "mcp__claude_code_mastery__curriculum_apply_update"
     ]
   }
 }

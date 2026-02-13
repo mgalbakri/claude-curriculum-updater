@@ -1,7 +1,7 @@
 """Tests for the semantic matching engine."""
 
 import pytest
-from curriculum_updater_mcp.semantic import (
+from claude_code_mastery.semantic import (
     SemanticIndex,
     _normalise,
     _expand_with_synonyms,

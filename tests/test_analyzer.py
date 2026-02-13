@@ -1,7 +1,7 @@
 """Tests for the curriculum analyzer module."""
 
 import pytest
-from curriculum_updater_mcp.analyzer import (
+from claude_code_mastery.analyzer import (
     _is_bugfix_release,
     _find_affected_weeks,
     _classify_gap,
@@ -14,7 +14,7 @@ from curriculum_updater_mcp.analyzer import (
     CurriculumGap,
     CURRICULUM_TOPIC_MAP,
 )
-from curriculum_updater_mcp.sources import Update
+from claude_code_mastery.sources import Update
 
 
 # --- Fixtures ---

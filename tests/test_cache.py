@@ -3,7 +3,7 @@
 import json
 import pytest
 from pathlib import Path
-from curriculum_updater_mcp.cache import (
+from claude_code_mastery.cache import (
     get_update_key,
 )
 

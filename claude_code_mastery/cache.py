@@ -10,7 +10,7 @@ from typing import Optional
 logger = logging.getLogger(__name__)
 
 
-DEFAULT_CACHE_DIR = Path.home() / ".curriculum-updater"
+DEFAULT_CACHE_DIR = Path.home() / ".claude-code-mastery"
 CACHE_FILE = "update_cache.json"
 CURRICULUM_STATE_FILE = "curriculum_state.json"
 MAX_SEEN_UPDATES = 500

@@ -1,8 +1,8 @@
 """
-Curriculum Updater MCP Server
+Claude Code Mastery — MCP Server
 
-Monitors Claude Code updates from multiple sources and analyzes gaps
-against your learning curriculum.
+Monitors Claude Code updates from multiple sources, performs gap analysis
+against the 12-week curriculum, and auto-applies changes.
 
 Sources: Boris Cherny's X, Anthropic blog, changelog, docs, GitHub releases,
 YouTube, Reddit r/ClaudeAI.
@@ -67,7 +67,7 @@ logger = logging.getLogger(__name__)
 
 # --- Initialize Server ---
 
-mcp = FastMCP("curriculum_updater_mcp")
+mcp = FastMCP("claude_code_mastery")
 
 
 # --- Input Models ---

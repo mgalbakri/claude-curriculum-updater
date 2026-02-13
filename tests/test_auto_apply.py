@@ -2,15 +2,15 @@
 
 import pytest
 from pathlib import Path
-from curriculum_updater_mcp.analyzer import (
+from claude_code_mastery.analyzer import (
     _generate_update_content,
     convert_gaps_to_updates,
     apply_single_update,
     CurriculumGap,
     CurriculumUpdate,
 )
-from curriculum_updater_mcp.cache import create_curriculum_backup
-from curriculum_updater_mcp.sources import Update
+from claude_code_mastery.cache import create_curriculum_backup
+from claude_code_mastery.sources import Update
 
 
 # --- Fixtures ---

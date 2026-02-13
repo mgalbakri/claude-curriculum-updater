@@ -1,7 +1,7 @@
 """Tests for the data source fetchers."""
 
 import pytest
-from curriculum_updater_mcp.sources import (
+from claude_code_mastery.sources import (
     _is_claude_relevant,
     _extract_title,
     _extract_tags,

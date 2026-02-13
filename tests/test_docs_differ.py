@@ -1,7 +1,7 @@
 """Tests for the documentation diffing engine."""
 
 import pytest
-from curriculum_updater_mcp.docs_differ import (
+from claude_code_mastery.docs_differ import (
     _section_hash,
     _extract_sections,
     diff_snapshots,

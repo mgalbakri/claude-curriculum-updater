@@ -4,7 +4,7 @@ Snapshots the Claude Code documentation tree and detects changes between
 runs. This catches every docs change — not just what gets announced on the
 blog — by comparing the actual page content paragraph by paragraph.
 
-Storage: ~/.curriculum-updater/docs_snapshots/
+Storage: ~/.claude-code-mastery/docs_snapshots/
 """
 
 import hashlib

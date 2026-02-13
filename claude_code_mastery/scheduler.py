@@ -2,11 +2,11 @@
 
 Provides two modes of operation:
 
-1. **Cron-compatible CLI**: Run ``curriculum-updater-check`` from crontab
+1. **Cron-compatible CLI**: Run ``claude-code-mastery-check`` from crontab
    or launchd to perform periodic checks and send notifications.
 
-2. **Background loop**: Run ``curriculum-updater-daemon`` for a long-lived
-   process that checks on a configurable interval.
+2. **Background loop**: Run as a long-lived daemon
+   that checks on a configurable interval.
 
 Notifications are sent via:
 - macOS native notifications (``osascript``)
@@ -14,7 +14,7 @@ Notifications are sent via:
 - Optional email (SMTP)
 - Log file (always)
 
-Configuration is stored in ~/.curriculum-updater/scheduler_config.json
+Configuration is stored in ~/.claude-code-mastery/scheduler_config.json
 """
 
 import asyncio
@@ -53,7 +53,7 @@ logger = logging.getLogger(__name__)
 SCHEDULER_CONFIG_FILE = "scheduler_config.json"
 NOTIFICATION_LOG_FILE = "notifications.log"
 DEFAULT_CHECK_INTERVAL_HOURS = 24
-LAUNCHD_LABEL = "com.curriculum-updater.checker"
+LAUNCHD_LABEL = "com.claude-code-mastery.checker"
 
 
 def _config_path() -> Path:
@@ -630,7 +630,7 @@ def generate_launchd_plist(interval_hours: int = 24, weekly: bool = False) -> st
     <array>
         <string>{python_path}</string>
         <string>-m</string>
-        <string>curriculum_updater_mcp.scheduler</string>
+        <string>claude_code_mastery.scheduler</string>
         <string>--once</string>
     </array>
 {schedule_block}
@@ -698,8 +698,8 @@ def generate_crontab_entry(interval_hours: int = 24) -> str:
         schedule = "0 9 * * 1"  # Weekly on Monday
 
     return (
-        f"# Curriculum Updater - check for Claude Code updates\n"
-        f"{schedule} {python_path} -m curriculum_updater_mcp.scheduler --once "
+        f"# Claude Code Mastery - check for curriculum updates\n"
+        f"{schedule} {python_path} -m claude_code_mastery.scheduler --once "
         f">> {get_cache_dir()}/scheduler.cron.log 2>&1"
     )
 

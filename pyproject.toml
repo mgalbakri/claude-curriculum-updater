@@ -1,7 +1,7 @@
 [project]
-name = "curriculum-updater-mcp"
-version = "2.0.0"
-description = "MCP server that monitors Claude Code updates from multiple sources (RSS, APIs, scraping), performs semantic gap analysis against your learning curriculum, detects documentation changes, and sends scheduled notifications."
+name = "claude-code-mastery"
+version = "2.1.0"
+description = "A 12-week Claude Code course with an auto-updating MCP server, course website, and scheduled curriculum maintenance."
 requires-python = ">=3.10"
 dependencies = [
     "mcp[cli]>=1.0.0",
@@ -19,8 +19,11 @@ dev = [
 ]
 
 [project.scripts]
-curriculum-updater = "curriculum_updater_mcp.server:main"
-curriculum-updater-check = "curriculum_updater_mcp.scheduler:main"
+claude-code-mastery = "claude_code_mastery.server:main"
+claude-code-mastery-check = "claude_code_mastery.scheduler:main"
+
+[tool.setuptools.packages.find]
+include = ["claude_code_mastery*"]
 
 [build-system]
 requires = ["setuptools>=68.0"]

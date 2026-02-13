@@ -4,7 +4,7 @@ import sys
 from unittest.mock import patch, MagicMock
 import pytest
 
-from curriculum_updater_mcp.scheduler import (
+from claude_code_mastery.scheduler import (
     send_email_notification,
     _send_via_mail_app,
 )
@@ -13,7 +13,7 @@ from curriculum_updater_mcp.scheduler import (
 # --- _send_via_mail_app ---
 
 class TestSendViaMailApp:
-    @patch("curriculum_updater_mcp.scheduler.subprocess.run")
+    @patch("claude_code_mastery.scheduler.subprocess.run")
     def test_success(self, mock_run):
         mock_run.return_value = MagicMock(returncode=0, stderr="")
         result = _send_via_mail_app("test@example.com", "Test Subject", "Test body")
@@ -22,13 +22,13 @@ class TestSendViaMailApp:
         call_args = mock_run.call_args
         assert call_args[0][0][0] == "osascript"
 
-    @patch("curriculum_updater_mcp.scheduler.subprocess.run")
+    @patch("claude_code_mastery.scheduler.subprocess.run")
     def test_failure(self, mock_run):
         mock_run.return_value = MagicMock(returncode=1, stderr="Error")
         result = _send_via_mail_app("test@example.com", "Subject", "Body")
         assert result is False
 
-    @patch("curriculum_updater_mcp.scheduler.subprocess.run")
+    @patch("claude_code_mastery.scheduler.subprocess.run")
     def test_escapes_quotes(self, mock_run):
         mock_run.return_value = MagicMock(returncode=0, stderr="")
         _send_via_mail_app("test@example.com", 'Has "quotes"', 'Body with "quotes"')
@@ -36,7 +36,7 @@ class TestSendViaMailApp:
         script = call_args[0][0][2]  # The AppleScript string
         assert '\\"' in script  # Quotes should be escaped
 
-    @patch("curriculum_updater_mcp.scheduler.subprocess.run")
+    @patch("claude_code_mastery.scheduler.subprocess.run")
     def test_escapes_backslashes(self, mock_run):
         mock_run.return_value = MagicMock(returncode=0, stderr="")
         _send_via_mail_app("test@example.com", "Has \\backslash", "Body")
@@ -49,7 +49,7 @@ class TestSendViaMailApp:
 
 class TestSendEmailNotification:
     @pytest.mark.asyncio
-    @patch("curriculum_updater_mcp.scheduler._send_via_mail_app", return_value=True)
+    @patch("claude_code_mastery.scheduler._send_via_mail_app", return_value=True)
     async def test_uses_mail_app_on_macos(self, mock_mail_app):
         """On macOS, should try Mail.app first."""
         config = {"notify_email": "test@example.com"}
@@ -71,7 +71,7 @@ class TestSendEmailNotification:
         assert result is False
 
     @pytest.mark.asyncio
-    @patch("curriculum_updater_mcp.scheduler._send_via_mail_app", return_value=False)
+    @patch("claude_code_mastery.scheduler._send_via_mail_app", return_value=False)
     async def test_falls_back_to_smtp(self, mock_mail_app):
         """If Mail.app fails and SMTP is configured, tries SMTP."""
         config = {
@@ -91,8 +91,8 @@ class TestSendEmailNotification:
         assert result is True
 
     @pytest.mark.asyncio
-    @patch("curriculum_updater_mcp.scheduler._send_via_mail_app", return_value=False)
-    @patch("curriculum_updater_mcp.scheduler.subprocess.run")
+    @patch("claude_code_mastery.scheduler._send_via_mail_app", return_value=False)
+    @patch("claude_code_mastery.scheduler.subprocess.run")
     async def test_falls_back_to_mailto(self, mock_run, mock_mail_app):
         """If both Mail.app and SMTP fail, tries mailto: URL."""
         config = {"notify_email": "test@example.com"}
