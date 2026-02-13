@@ -474,6 +474,11 @@ Document every command you used in a file called `cleanup-log.txt` (use `echo "c
 @anthropic-ai/claude-code@2.1.41 published to...
 Source: https://www.npmjs.com/package/@anthropic-ai/claude-code/v/2.1.41
 
+
+**Claude Code npm 2.1.42 (latest)** (added 2026-02-13)
+@anthropic-ai/claude-code@2.1.42 published to...
+Source: https://www.npmjs.com/package/@anthropic-ai/claude-code/v/2.1.42
+
 ---
 
 ### WEEK 2: Git & Version Control
