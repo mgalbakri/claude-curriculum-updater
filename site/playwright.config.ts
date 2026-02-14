@@ -5,7 +5,7 @@ const baseURL = process.env.DEPLOYMENT_URL || "http://localhost:3000";
 // Vercel deployment protection bypass for CI
 // Set VERCEL_AUTOMATION_BYPASS_SECRET in GitHub Actions secrets
 const bypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
-const extraHTTPHeaders = bypassSecret
+const extraHTTPHeaders: Record<string, string> = bypassSecret
   ? {
       "x-vercel-protection-bypass": bypassSecret,
       "x-vercel-set-bypass-cookie": "true",
