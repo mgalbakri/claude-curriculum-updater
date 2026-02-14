@@ -7,9 +7,14 @@
     "prebuild": "cp ../curriculum.md . 2>/dev/null || true",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "playwright test",
+    "test:smoke": "playwright test e2e/smoke.spec.ts",
+    "test:seo": "playwright test e2e/seo.spec.ts",
+    "test:all": "playwright test"
   },
   "dependencies": {
+    "@vercel/analytics": "^1.6.1",
     "next": "16.1.6",
     "next-themes": "^0.4.6",
     "react": "19.2.3",
@@ -19,6 +24,7 @@
     "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

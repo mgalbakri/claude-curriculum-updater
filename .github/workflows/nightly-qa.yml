@@ -1,0 +1,65 @@
+name: Nightly QA
+
+on:
+  schedule:
+    # Run every day at 6:00 AM UTC
+    - cron: "0 6 * * *"
+  # Allow manual trigger
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: site
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ hashFiles('site/package-lock.json') }}
+
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+
+      - name: Install Playwright system deps
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+
+      - name: Copy curriculum.md for build
+        run: cp ../curriculum.md . 2>/dev/null || true
+
+      - name: Run Playwright tests against production
+        run: npx playwright test
+        env:
+          DEPLOYMENT_URL: https://agentcodeacademy.com
+          CI: true
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nightly-playwright-report
+          path: site/playwright-report/
+          retention-days: 30
