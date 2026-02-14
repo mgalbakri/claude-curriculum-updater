@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getAllWeeks, getWeek } from "@/lib/parse-curriculum";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
+import { EmailBanner } from "@/components/email-banner";
 
 interface WeekPageProps {
   params: Promise<{ number: string }>;
@@ -17,9 +18,27 @@ export async function generateMetadata({ params }: WeekPageProps) {
   const week = getWeek(parseInt(number, 10));
   if (!week) return { title: "Week Not Found" };
 
+  const title = `Week ${week.number}: ${week.title}`;
+  const description =
+    week.objective || week.subtitle || `Week ${week.number} of the free 12-week AI coding course.`;
+
   return {
-    title: `Week ${week.number}: ${week.title} — Claude Code Mastery`,
-    description: week.objective || week.subtitle,
+    title,
+    description,
+    openGraph: {
+      title: `${title} — Agent Code Academy`,
+      description,
+      url: `https://agentcodeacademy.com/week/${week.number}`,
+      type: "article",
+    },
+    twitter: {
+      card: "summary",
+      title: `${title} — Agent Code Academy`,
+      description,
+    },
+    alternates: {
+      canonical: `https://agentcodeacademy.com/week/${week.number}`,
+    },
   };
 }
 
@@ -42,6 +61,8 @@ export default async function WeekPage({ params }: WeekPageProps) {
 
   return (
     <article className="py-8 lg:py-12">
+      <EmailBanner />
+
       {/* Breadcrumb & Phase badge */}
       <div className="flex items-center gap-2 mb-6 text-sm">
         <Link

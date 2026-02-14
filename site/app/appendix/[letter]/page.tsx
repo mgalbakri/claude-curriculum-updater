@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getAllAppendices, getAppendix } from "@/lib/parse-curriculum";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
+import { EmailBanner } from "@/components/email-banner";
 
 interface AppendixPageProps {
   params: Promise<{ letter: string }>;
@@ -17,9 +18,26 @@ export async function generateMetadata({ params }: AppendixPageProps) {
   const appendix = getAppendix(letter);
   if (!appendix) return { title: "Appendix Not Found" };
 
+  const title = `Appendix ${appendix.letter}: ${appendix.title}`;
+  const description = `${appendix.title} — Reference material from the free 12-week AI coding course.`;
+
   return {
-    title: `Appendix ${appendix.letter}: ${appendix.title} — Claude Code Mastery`,
-    description: `Reference material: ${appendix.title}`,
+    title,
+    description,
+    openGraph: {
+      title: `${title} — Agent Code Academy`,
+      description,
+      url: `https://agentcodeacademy.com/appendix/${appendix.letter.toLowerCase()}`,
+      type: "article",
+    },
+    twitter: {
+      card: "summary",
+      title: `${title} — Agent Code Academy`,
+      description,
+    },
+    alternates: {
+      canonical: `https://agentcodeacademy.com/appendix/${appendix.letter.toLowerCase()}`,
+    },
   };
 }
 
@@ -41,6 +59,8 @@ export default async function AppendixPage({ params }: AppendixPageProps) {
 
   return (
     <article className="py-8 lg:py-12">
+      <EmailBanner />
+
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 mb-6 text-sm">
         <Link

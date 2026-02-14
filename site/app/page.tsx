@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { parseCurriculum } from "@/lib/parse-curriculum";
 import { WeekCard } from "@/components/week-card";
+import { EmailSignup } from "@/components/email-signup";
+import { InlineEmailCta } from "@/components/inline-email-cta";
 
 const phaseColors: Record<
   number,
@@ -31,7 +33,7 @@ export default function HomePage() {
           100% Free · Self-Paced · Always Up-to-Date
         </div>
         <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-gray-900 dark:text-white mb-4">
-          Claude Code Mastery
+          Agent Code Academy
         </h1>
         <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-2">
           {curriculum.goal}
@@ -95,27 +97,35 @@ export default function HomePage() {
         {curriculum.phases.map((phase) => {
           const colors = phaseColors[phase.number] || phaseColors[1];
           return (
-            <div key={phase.number} className="mb-12">
-              <div className="flex items-center gap-3 mb-4">
-                <span
-                  className={`text-xs font-semibold uppercase tracking-wider px-2.5 py-1 rounded-lg ${colors.badge}`}
-                >
-                  Phase {phase.number}
-                </span>
-                <div>
-                  <h3 className={`text-lg font-semibold ${colors.accent}`}>
-                    {phase.name}
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {phase.weekRange}
-                  </p>
+            <div key={phase.number}>
+              <div className="mb-12">
+                <div className="flex items-center gap-3 mb-4">
+                  <span
+                    className={`text-xs font-semibold uppercase tracking-wider px-2.5 py-1 rounded-lg ${colors.badge}`}
+                  >
+                    Phase {phase.number}
+                  </span>
+                  <div>
+                    <h3 className={`text-lg font-semibold ${colors.accent}`}>
+                      {phase.name}
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {phase.weekRange}
+                    </p>
+                  </div>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  {phase.weeks.map((week) => (
+                    <WeekCard key={week.number} week={week} />
+                  ))}
                 </div>
               </div>
-              <div className="grid sm:grid-cols-2 gap-3">
-                {phase.weeks.map((week) => (
-                  <WeekCard key={week.number} week={week} />
-                ))}
-              </div>
+              {phase.number === 1 && (
+                <InlineEmailCta message="Enjoying the foundations? Get updates as new content drops." />
+              )}
+              {phase.number === 2 && (
+                <InlineEmailCta message="Ready for advanced topics? Subscribe for tips and updates." />
+              )}
             </div>
           );
         })}
@@ -146,12 +156,122 @@ export default function HomePage() {
         </section>
       )}
 
+      {/* Email Signup */}
+      <EmailSignup />
+
+      {/* Recommended Tools */}
+      <section className="mt-16">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          Recommended Tools
+        </h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+          Essential tools for getting the most out of your Claude Code journey.
+        </p>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {[
+            {
+              name: "Claude Pro / Max",
+              description:
+                "The AI assistant powering Claude Code. Pro or Max subscription recommended.",
+              href: "https://www.anthropic.com/claude",
+              category: "AI",
+            },
+            {
+              name: "Anthropic API",
+              description:
+                "Build custom integrations and extend Claude Code with the API.",
+              href: "https://console.anthropic.com/",
+              category: "AI",
+            },
+            {
+              name: "Cursor IDE",
+              description:
+                "AI-native code editor with deep Claude Code integration.",
+              href: "https://www.cursor.com/",
+              category: "Editor",
+            },
+            {
+              name: "VS Code",
+              description:
+                "Industry-standard editor. Use with the Claude Code CLI extension.",
+              href: "https://code.visualstudio.com/",
+              category: "Editor",
+            },
+            {
+              name: "GitHub",
+              description:
+                "Host your projects and collaborate. Essential for version control.",
+              href: "https://github.com/",
+              category: "Platform",
+            },
+            {
+              name: "Vercel",
+              description:
+                "Deploy your projects instantly. Works perfectly with Next.js.",
+              href: "https://vercel.com/",
+              category: "Platform",
+            },
+          ].map((tool) => (
+            <a
+              key={tool.name}
+              href={tool.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block p-4 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 hover:shadow-md transition-all bg-white dark:bg-gray-900 group"
+            >
+              <span className="text-xs text-gray-400 dark:text-gray-500 font-mono uppercase tracking-wider">
+                {tool.category}
+              </span>
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 mt-1 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                {tool.name}
+                <span className="inline-block ml-1 text-gray-400 dark:text-gray-600 group-hover:translate-x-0.5 transition-transform">
+                  &rarr;
+                </span>
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                {tool.description}
+              </p>
+            </a>
+          ))}
+        </div>
+      </section>
+
+      {/* Support This Project */}
+      <section className="mt-16 p-6 sm:p-8 rounded-2xl bg-amber-50 dark:bg-amber-950/10 border border-amber-200 dark:border-amber-900/30 text-center">
+        <p className="text-2xl mb-3">&#9749;</p>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+          Support This Project
+        </h2>
+        <p className="text-sm text-gray-600 dark:text-gray-400 max-w-md mx-auto mb-5">
+          This course is free and always will be. If it&apos;s helped you,
+          consider buying me a coffee to keep it going.
+        </p>
+        <a
+          href="https://buymeacoffee.com/curriculumbuilder"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold text-sm transition-colors shadow-sm"
+        >
+          &#9749; Buy Me a Coffee
+        </a>
+      </section>
+
       {/* Footer */}
       <footer className="mt-20 pt-8 border-t border-gray-200 dark:border-gray-800 text-center text-sm text-gray-500 dark:text-gray-400">
         <p>
           Built with Claude Code · Content auto-updated via MCP
         </p>
-        <p className="mt-1">{curriculum.edition}</p>
+        <p className="mt-1">
+          {curriculum.edition} ·{" "}
+          <a
+            href="https://buymeacoffee.com/curriculumbuilder"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-amber-500 dark:hover:text-amber-400 transition-colors"
+          >
+            Support this project &#9749;
+          </a>
+        </p>
       </footer>
     </div>
   );

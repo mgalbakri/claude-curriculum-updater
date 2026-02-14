@@ -28,7 +28,7 @@ export function Sidebar({ phases, appendices }: SidebarProps) {
     <nav className="w-72 h-screen sticky top-0 overflow-y-auto border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 p-4 hidden lg:block">
       <Link href="/" className="block mb-6">
         <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-          Claude Code Mastery
+          Agent Code Academy
         </h2>
         <p className="text-xs text-gray-500 dark:text-gray-400">
           Free 12-Week Course
