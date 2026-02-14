@@ -35,7 +35,9 @@ test.describe("Smoke: No Console Errors", () => {
     const errors: string[] = [];
     page.on("pageerror", (err) => errors.push(err.message));
     await page.goto("/");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
+    // Allow time for client-side hydration errors
+    await page.waitForTimeout(2000);
     expect(errors).toHaveLength(0);
   });
 
@@ -43,7 +45,8 @@ test.describe("Smoke: No Console Errors", () => {
     const errors: string[] = [];
     page.on("pageerror", (err) => errors.push(err.message));
     await page.goto("/week/1");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
+    await page.waitForTimeout(2000);
     expect(errors).toHaveLength(0);
   });
 });

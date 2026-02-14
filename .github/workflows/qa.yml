@@ -13,7 +13,7 @@ jobs:
     # Only run when Vercel deployment succeeds
     if: github.event.deployment_status.state == 'success'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: site
@@ -51,9 +51,13 @@ jobs:
         run: cp ../curriculum.md . 2>/dev/null || true
 
       - name: Run Playwright tests
-        run: npx playwright test
+        id: tests
+        run: |
+          npx playwright test
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
         env:
           DEPLOYMENT_URL: ${{ github.event.deployment_status.environment_url }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
           CI: true
 
       - name: Upload test results
@@ -64,10 +68,68 @@ jobs:
           path: site/playwright-report/
           retention-days: 14
 
-      - name: Post PR comment with results
-        uses: daun/playwright-report-summary@v3
+      - name: Upload JSON results
+        uses: actions/upload-artifact@v4
         if: always()
         with:
-          report-file: site/test-results/results.json
-          comment-title: "🎭 QA Test Results"
-          job-summary: true
+          name: test-results
+          path: site/test-results/
+          retention-days: 14
+
+      - name: Post PR comment
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEPLOYMENT_URL: ${{ github.event.deployment_status.environment_url }}
+        working-directory: ${{ github.workspace }}
+        run: |
+          # Try to find PR by branch name (more reliable than SHA for deployment events)
+          BRANCH="${{ github.event.deployment_status.deployment.ref }}"
+          if [ -z "$BRANCH" ]; then
+            BRANCH="${{ github.event.deployment.ref }}"
+          fi
+          PR_NUMBER=""
+          if [ -n "$BRANCH" ] && [ "$BRANCH" != "main" ] && [ "$BRANCH" != "master" ]; then
+            PR_NUMBER=$(gh pr list --state open --head "$BRANCH" --json number --jq ".[0].number" 2>/dev/null || echo "")
+          fi
+
+          if [ -z "$PR_NUMBER" ]; then
+            echo "No open PR found for branch '$BRANCH' — skipping comment"
+            exit 0
+          fi
+
+          # Parse test results from JSON if available
+          if [ -f site/test-results/results.json ]; then
+            PASSED=$(jq '[.suites[].specs[].tests[] | select(.status == "expected")] | length' site/test-results/results.json 2>/dev/null || echo "?")
+            FAILED=$(jq '[.suites[].specs[].tests[] | select(.status == "unexpected")] | length' site/test-results/results.json 2>/dev/null || echo "?")
+            SKIPPED=$(jq '[.suites[].specs[].tests[] | select(.status == "skipped")] | length' site/test-results/results.json 2>/dev/null || echo "?")
+          else
+            PASSED="?"
+            FAILED="?"
+            SKIPPED="?"
+          fi
+
+          EXIT_CODE="${{ steps.tests.outputs.exit_code }}"
+          if [ "$EXIT_CODE" = "0" ]; then
+            STATUS="✅ All tests passed"
+            ICON="✅"
+          else
+            STATUS="❌ Some tests failed"
+            ICON="❌"
+          fi
+
+          BODY=$(cat <<COMMENT_EOF
+          ## 🎭 QA Test Results ${ICON}
+
+          **Status:** ${STATUS}
+          **Tested URL:** ${DEPLOYMENT_URL}
+
+          | Passed | Failed | Skipped |
+          |--------|--------|---------|
+          | ${PASSED} | ${FAILED} | ${SKIPPED} |
+
+          [View full report →](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          COMMENT_EOF
+          )
+
+          gh pr comment "$PR_NUMBER" --body "$BODY" --edit-last 2>/dev/null || gh pr comment "$PR_NUMBER" --body "$BODY"

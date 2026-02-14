@@ -130,9 +130,11 @@ test.describe("SEO: Robots.txt", () => {
 
 test.describe("SEO: No Duplicate Titles", () => {
   test("week pages have unique titles", async ({ page }) => {
+    // This test navigates to 12 pages sequentially — give it extra time
+    test.setTimeout(120_000);
     const titles: string[] = [];
     for (let i = 1; i <= 12; i++) {
-      await page.goto(`/week/${i}`);
+      await page.goto(`/week/${i}`, { waitUntil: "domcontentloaded" });
       titles.push(await page.title());
     }
     const unique = new Set(titles);

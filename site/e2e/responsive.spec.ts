@@ -108,7 +108,7 @@ test.describe("Responsive: Week Page", () => {
       localStorage.removeItem("ccm-email-subscribed");
     });
     await page.reload();
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     const banner = page.locator("text=Get notified when new lessons drop").first();
     await expect(banner).toBeVisible();
