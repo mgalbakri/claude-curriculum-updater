@@ -52,9 +52,12 @@ jobs:
 
       - name: Run Playwright tests
         id: tests
-        run: npx playwright test 2>&1 | tee test-output.txt; echo "exit_code=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
+        run: |
+          npx playwright test
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
         env:
           DEPLOYMENT_URL: ${{ github.event.deployment_status.environment_url }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
           CI: true
 
       - name: Upload test results
@@ -80,11 +83,18 @@ jobs:
           DEPLOYMENT_URL: ${{ github.event.deployment_status.environment_url }}
         working-directory: ${{ github.workspace }}
         run: |
-          SHA="${{ github.event.deployment.sha }}"
-          PR_NUMBER=$(gh pr list --state open --json number,headRefOid --jq ".[] | select(.headRefOid == \"$SHA\") | .number" 2>/dev/null || echo "")
+          # Try to find PR by branch name (more reliable than SHA for deployment events)
+          BRANCH="${{ github.event.deployment_status.deployment.ref }}"
+          if [ -z "$BRANCH" ]; then
+            BRANCH="${{ github.event.deployment.ref }}"
+          fi
+          PR_NUMBER=""
+          if [ -n "$BRANCH" ] && [ "$BRANCH" != "main" ] && [ "$BRANCH" != "master" ]; then
+            PR_NUMBER=$(gh pr list --state open --head "$BRANCH" --json number --jq ".[0].number" 2>/dev/null || echo "")
+          fi
 
           if [ -z "$PR_NUMBER" ]; then
-            echo "No open PR found for SHA $SHA — skipping comment"
+            echo "No open PR found for branch '$BRANCH' — skipping comment"
             exit 0
           fi
 
@@ -108,7 +118,8 @@ jobs:
             ICON="❌"
           fi
 
-          BODY="## 🎭 QA Test Results ${ICON}
+          BODY=$(cat <<COMMENT_EOF
+          ## 🎭 QA Test Results ${ICON}
 
           **Status:** ${STATUS}
           **Tested URL:** ${DEPLOYMENT_URL}
@@ -117,10 +128,8 @@ jobs:
           |--------|--------|---------|
           | ${PASSED} | ${FAILED} | ${SKIPPED} |
 
-          [View full report →](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+          [View full report →](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          COMMENT_EOF
+          )
 
           gh pr comment "$PR_NUMBER" --body "$BODY" --edit-last 2>/dev/null || gh pr comment "$PR_NUMBER" --body "$BODY"
-
-      - name: Fail if tests failed
-        if: always() && steps.tests.outputs.exit_code != '0'
-        run: exit 1

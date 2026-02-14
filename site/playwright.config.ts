@@ -2,6 +2,16 @@ import { defineConfig, devices } from "@playwright/test";
 
 const baseURL = process.env.DEPLOYMENT_URL || "http://localhost:3000";
 
+// Vercel deployment protection bypass for CI
+// Set VERCEL_AUTOMATION_BYPASS_SECRET in GitHub Actions secrets
+const bypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+const extraHTTPHeaders = bypassSecret
+  ? {
+      "x-vercel-protection-bypass": bypassSecret,
+      "x-vercel-set-bypass-cookie": "true",
+    }
+  : {};
+
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
@@ -19,6 +29,7 @@ export default defineConfig({
     screenshot: "only-on-failure",
     navigationTimeout: process.env.CI ? 30_000 : 15_000,
     actionTimeout: process.env.CI ? 15_000 : 10_000,
+    extraHTTPHeaders,
   },
 
   projects: [
