@@ -8,7 +8,7 @@ function getToggle(page: import("@playwright/test").Page) {
 test.describe("Dark Mode: Toggle", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
   });
 
   test("clicking toggle activates dark mode class", async ({ page }) => {
@@ -53,24 +53,21 @@ test.describe("Dark Mode: System Preference", () => {
     // Emulate dark color scheme at page level (for the dark-mode project)
     await page.emulateMedia({ colorScheme: "dark" });
     await page.goto("/");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     // next-themes should detect prefers-color-scheme: dark and apply the class
     // Give it a moment for client-side hydration
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(2000);
 
-    const htmlClass = await page.evaluate(() =>
-      document.documentElement.className
-    );
-    // Should contain 'dark' (set by next-themes detecting the system preference)
-    expect(htmlClass).toContain("dark");
+    // next-themes should detect prefers-color-scheme: dark and apply the class
+    await expect(page.locator("html")).toHaveClass(/dark/);
   });
 });
 
 test.describe("Dark Mode: Week Page", () => {
   test("dark mode works on content pages", async ({ page }) => {
     await page.goto("/week/1");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     const toggle = getToggle(page);
     await toggle.click();

@@ -71,7 +71,7 @@ test.describe("Forms: Week Page Email Banner", () => {
       localStorage.removeItem("ccm-email-subscribed");
     });
     await page.reload();
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
   });
 
   test("email banner is visible on week page", async ({ page }) => {
@@ -110,7 +110,7 @@ test.describe("Forms: Week Page Email Banner", () => {
 
     // Reload the page
     await page.reload();
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     // Banner should still be hidden (localStorage remembers)
     await expect(

@@ -36,7 +36,7 @@ test.describe("External Links", () => {
     test(`${link.name} (${link.url}) is reachable`, async ({ request }) => {
       const response = await request.get(link.url, {
         maxRedirects: 5,
-        timeout: 15_000,
+        timeout: 30_000,
       });
 
       // Use soft assertion — one broken link shouldn't fail the whole suite
