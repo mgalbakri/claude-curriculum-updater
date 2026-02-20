@@ -6,10 +6,13 @@ export async function POST(request: Request) {
 
   if (!apiKey || !variantId) {
     return NextResponse.json(
-      { error: "Payment not configured" },
+      { error: "Payment not configured", apiKeySet: !!apiKey, variantIdSet: !!variantId },
       { status: 500 }
     );
   }
+
+  // Debug: log key length and variant (remove after debugging)
+  console.log(`Checkout: apiKey length=${apiKey.length}, variantId=${variantId}`);
 
   const { email, userId } = await request.json();
 
