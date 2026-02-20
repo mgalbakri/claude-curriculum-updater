@@ -11,34 +11,36 @@ export function ProPromoBanner() {
   if (isLoading || isPremium) return null;
 
   return (
-    <section className="my-12 p-6 sm:p-8 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
-      <div className="flex flex-col sm:flex-row items-center gap-6">
-        <div className="flex-1 text-center sm:text-left">
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-            Unlock the Full Course
-          </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400 max-w-lg">
-            Get access to all 12 weeks of content including advanced workflows,
-            multi-agent systems, production deployment, and a certificate of
-            completion. One-time payment, lifetime access.
-          </p>
-        </div>
-        <div className="flex-shrink-0 text-center">
-          <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
-            {PRICE_DISPLAY}
+    <section className="my-12 gradient-border-animated">
+      <div className="relative z-10 p-6 sm:p-8 rounded-xl bg-white dark:bg-slate-900">
+        <div className="flex flex-col sm:flex-row items-center gap-6">
+          <div className="flex-1 text-center sm:text-left">
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+              Unlock the Full Course
+            </h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400 max-w-lg">
+              Get access to all 12 weeks of content including advanced workflows,
+              multi-agent systems, production deployment, and a certificate of
+              completion. One-time payment, lifetime access.
+            </p>
           </div>
-          <div className="text-xs text-gray-500 dark:text-gray-400 mb-3">
-            one-time payment
+          <div className="flex-shrink-0 text-center">
+            <div className="text-3xl font-bold text-slate-900 dark:text-white mb-1">
+              {PRICE_DISPLAY}
+            </div>
+            <div className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+              one-time payment
+            </div>
+            <Link
+              href="/pricing"
+              className="inline-flex items-center px-6 py-3 rounded-lg bg-gradient-to-r from-indigo-500 to-orange-500 text-white font-semibold text-sm hover:opacity-90 transition-opacity shadow-lg shadow-indigo-500/20"
+            >
+              Get Pro Access &rarr;
+            </Link>
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-2">
+              30-day money-back guarantee
+            </p>
           </div>
-          <Link
-            href="/pricing"
-            className="inline-flex items-center px-6 py-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition-colors shadow-sm"
-          >
-            Get Pro Access &rarr;
-          </Link>
-          <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-2">
-            30-day money-back guarantee
-          </p>
         </div>
       </div>
     </section>

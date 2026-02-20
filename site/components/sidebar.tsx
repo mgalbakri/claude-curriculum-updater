@@ -23,9 +23,9 @@ const phaseColors: Record<number, string> = {
 };
 
 const phaseBgColors: Record<number, string> = {
-  1: "bg-emerald-50 dark:bg-emerald-950/30",
-  2: "bg-blue-50 dark:bg-blue-950/30",
-  3: "bg-purple-50 dark:bg-purple-950/30",
+  1: "bg-emerald-50 dark:bg-emerald-500/10",
+  2: "bg-blue-50 dark:bg-blue-500/10",
+  3: "bg-purple-50 dark:bg-purple-500/10",
 };
 
 export function Sidebar({ phases, appendices }: SidebarProps) {
@@ -34,12 +34,12 @@ export function Sidebar({ phases, appendices }: SidebarProps) {
   const { completedWeeks, completionPercentage } = useProgress();
 
   return (
-    <nav className="w-72 h-screen sticky top-0 overflow-y-auto border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 p-4 hidden lg:block">
+    <nav className="w-72 h-screen sticky top-0 overflow-y-auto border-r border-slate-200 dark:border-slate-800/50 bg-white dark:bg-slate-950 p-4 hidden lg:block">
       <Link href="/" className="block mb-4">
-        <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+        <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
           Agent Code Academy
         </h2>
-        <p className="text-xs text-gray-500 dark:text-gray-400">
+        <p className="text-xs text-slate-500 dark:text-slate-400">
           12-Week AI Coding Course
         </p>
       </Link>
@@ -47,11 +47,11 @@ export function Sidebar({ phases, appendices }: SidebarProps) {
       {/* Progress bar (logged-in users only) */}
       {user && (
         <div className="mb-5 px-1">
-          <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-1.5">
+          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1.5">
             <span>Progress</span>
             <span>{completedWeeks.length}/{TOTAL_WEEKS} weeks</span>
           </div>
-          <div className="h-2 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
+          <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
             <div
               className="h-full rounded-full bg-emerald-500 dark:bg-emerald-400 transition-all duration-500"
               style={{ width: `${completionPercentage}%` }}
@@ -78,12 +78,12 @@ export function Sidebar({ phases, appendices }: SidebarProps) {
                     href={href}
                     className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm transition-colors ${
                       isActive
-                        ? "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white font-medium"
-                        : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-900 hover:text-gray-900 dark:hover:text-gray-200"
+                        ? "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-medium border-l-2 border-indigo-500"
+                        : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900/50 hover:text-slate-900 dark:hover:text-slate-200"
                     }`}
                   >
                     <ProgressIndicator completed={isComplete} />
-                    <span className="text-gray-400 dark:text-gray-600 mr-0.5 text-xs">
+                    <span className="text-slate-400 dark:text-slate-600 mr-0.5 text-xs">
                       {week.number}.
                     </span>
                     <span className="flex-1 truncate">{week.title}</span>
@@ -98,7 +98,7 @@ export function Sidebar({ phases, appendices }: SidebarProps) {
 
       {appendices.length > 0 && (
         <div className="mb-5">
-          <div className="text-xs font-semibold uppercase tracking-wider mb-2 px-2 py-1 rounded text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900">
+          <div className="text-xs font-semibold uppercase tracking-wider mb-2 px-2 py-1 rounded text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/50">
             Appendices
           </div>
           <ul className="space-y-0.5">
@@ -111,11 +111,11 @@ export function Sidebar({ phases, appendices }: SidebarProps) {
                     href={href}
                     className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
                       isActive
-                        ? "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white font-medium"
-                        : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-900 hover:text-gray-900 dark:hover:text-gray-200"
+                        ? "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-medium border-l-2 border-indigo-500"
+                        : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900/50 hover:text-slate-900 dark:hover:text-slate-200"
                     }`}
                   >
-                    <span className="text-gray-400 dark:text-gray-600 mr-1.5 text-xs">
+                    <span className="text-slate-400 dark:text-slate-600 mr-1.5 text-xs">
                       {appendix.letter}.
                     </span>
                     {appendix.title}
@@ -132,7 +132,7 @@ export function Sidebar({ phases, appendices }: SidebarProps) {
         <div className="mb-5">
           <Link
             href="/certificate"
-            className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 text-sm font-medium text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-950/40 transition-colors"
+            className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-800 text-sm font-medium text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-500/20 transition-colors"
           >
             <span>&#127942;</span>
             View Certificate

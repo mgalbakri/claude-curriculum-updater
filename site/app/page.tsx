@@ -10,15 +10,15 @@ const phaseColors: Record<
   { badge: string; accent: string }
 > = {
   1: {
-    badge: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400",
+    badge: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400",
     accent: "text-emerald-600 dark:text-emerald-400",
   },
   2: {
-    badge: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400",
+    badge: "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400",
     accent: "text-blue-600 dark:text-blue-400",
   },
   3: {
-    badge: "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-400",
+    badge: "bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400",
     accent: "text-purple-600 dark:text-purple-400",
   },
 };
@@ -30,25 +30,25 @@ export default function HomePage() {
     <div className="py-8 lg:py-16">
       {/* Hero Section */}
       <section className="text-center mb-20">
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-gray-900 dark:text-white mb-4">
-          Agent Code Academy
+        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-slate-900 dark:text-white mb-4">
+          Agent <span className="gradient-text">Code</span> Academy
         </h1>
-        <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-2">
+        <p className="text-lg sm:text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mb-2">
           {curriculum.goal}
         </p>
-        <p className="text-sm text-gray-500 dark:text-gray-500 mb-8">
+        <p className="text-sm text-slate-500 dark:text-slate-500 mb-8">
           {curriculum.edition} · {curriculum.duration}
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           <Link
             href="/week/1"
-            className="inline-flex items-center px-6 py-3 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-semibold text-base hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors shadow-lg shadow-gray-900/10 dark:shadow-white/10"
+            className="inline-flex items-center px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-orange-500 text-white font-semibold text-base hover:opacity-90 transition-opacity shadow-lg shadow-indigo-500/20"
           >
             Start Learning →
           </Link>
           <Link
             href="#curriculum"
-            className="inline-flex items-center px-6 py-3 rounded-xl border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-medium text-base hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
+            className="inline-flex items-center px-6 py-3 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-medium text-base hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
           >
             View Curriculum
           </Link>
@@ -57,7 +57,7 @@ export default function HomePage() {
 
       {/* Phases & Weeks */}
       <section id="curriculum" className="scroll-mt-8">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-8">
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-8">
           Course Curriculum
         </h2>
 
@@ -76,7 +76,7 @@ export default function HomePage() {
                     <h3 className={`text-lg font-semibold ${colors.accent}`}>
                       {phase.name}
                     </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
                       {phase.weekRange}
                     </p>
                   </div>
@@ -98,23 +98,23 @@ export default function HomePage() {
       {/* Appendices */}
       {curriculum.appendices.length > 0 && (
         <section className="mt-20">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
             Reference Appendices
           </h2>
-          <div className="divide-y divide-gray-200 dark:divide-gray-800 border-t border-b border-gray-200 dark:border-gray-800">
+          <div className="divide-y divide-slate-200 dark:divide-slate-800/50 border-t border-b border-slate-200 dark:border-slate-800/50">
             {curriculum.appendices.map((appendix) => (
               <Link
                 key={appendix.letter}
                 href={`/appendix/${appendix.letter.toLowerCase()}`}
-                className="flex items-center gap-3 py-3 px-2 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors group"
+                className="flex items-center gap-3 py-3 px-2 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors group"
               >
-                <span className="text-xs text-gray-400 dark:text-gray-500 font-mono w-8 flex-shrink-0">
+                <span className="text-xs text-slate-400 dark:text-slate-500 font-mono w-8 flex-shrink-0">
                   {appendix.letter}
                 </span>
-                <span className="font-medium text-gray-900 dark:text-gray-100 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
+                <span className="font-medium text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                   {appendix.title}
                 </span>
-                <span className="ml-auto text-gray-300 dark:text-gray-700 group-hover:text-gray-400 dark:group-hover:text-gray-500 transition-colors text-sm">
+                <span className="ml-auto text-slate-300 dark:text-slate-700 group-hover:text-indigo-400 dark:group-hover:text-indigo-500 transition-colors text-sm">
                   &rarr;
                 </span>
               </Link>
@@ -128,47 +128,47 @@ export default function HomePage() {
 
       {/* Recommended Tools */}
       <section className="mt-12">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
           Recommended Tools
         </h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
           Essential tools for getting the most out of your Claude Code journey.
         </p>
-        <div className="divide-y divide-gray-200 dark:divide-gray-800 border-t border-b border-gray-200 dark:border-gray-800">
+        <div className="divide-y divide-slate-200 dark:divide-slate-800/50 border-t border-b border-slate-200 dark:border-slate-800/50">
           {affiliateTools.map((tool) => (
             <a
               key={tool.name}
               href={tool.href}
               target="_blank"
               rel="noopener noreferrer sponsored"
-              className="flex items-center gap-4 py-3 px-2 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors group"
+              className="flex items-center gap-4 py-3 px-2 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors group"
             >
-              <span className="text-[10px] font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500 w-16 flex-shrink-0">
+              <span className="text-[10px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500 w-16 flex-shrink-0">
                 {tool.category}
               </span>
-              <span className="font-medium text-gray-900 dark:text-gray-100 flex-shrink-0">
+              <span className="font-medium text-slate-900 dark:text-slate-100 flex-shrink-0">
                 {tool.name}
               </span>
-              <span className="text-sm text-gray-500 dark:text-gray-400 truncate hidden sm:block">
+              <span className="text-sm text-slate-500 dark:text-slate-400 truncate hidden sm:block">
                 {tool.description}
               </span>
-              <span className="ml-auto text-gray-300 dark:text-gray-700 group-hover:text-gray-400 dark:group-hover:text-gray-500 transition-colors text-sm flex-shrink-0">
+              <span className="ml-auto text-slate-300 dark:text-slate-700 group-hover:text-indigo-400 dark:group-hover:text-indigo-500 transition-colors text-sm flex-shrink-0">
                 &rarr;
               </span>
             </a>
           ))}
         </div>
-        <p className="text-[10px] text-gray-400 dark:text-gray-600 mt-3">
+        <p className="text-[10px] text-slate-400 dark:text-slate-600 mt-3">
           Some links may be affiliate links. We only recommend tools we genuinely use.
         </p>
       </section>
 
       {/* Support This Project */}
-      <section className="mt-24 p-6 sm:p-8 rounded-xl border border-gray-200 dark:border-gray-800 text-center">
-        <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+      <section className="mt-24 p-6 sm:p-8 rounded-xl border border-slate-200 dark:border-slate-800/50 text-center">
+        <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
           Support This Project
         </h2>
-        <p className="text-sm text-gray-600 dark:text-gray-400 max-w-md mx-auto mb-5">
+        <p className="text-sm text-slate-600 dark:text-slate-400 max-w-md mx-auto mb-5">
           Weeks 1–4 are free to everyone. If this course has helped you,
           consider buying me a coffee to keep it growing.
         </p>
@@ -176,14 +176,14 @@ export default function HomePage() {
           href="https://buymeacoffee.com/curriculumbuilder"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-semibold text-sm hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-gradient-to-r from-indigo-500 to-orange-500 text-white font-semibold text-sm hover:opacity-90 transition-opacity"
         >
           Buy Me a Coffee
         </a>
       </section>
 
       {/* Footer */}
-      <footer className="mt-16 pt-8 border-t border-gray-200 dark:border-gray-800 text-center text-sm text-gray-500 dark:text-gray-400">
+      <footer className="mt-16 pt-8 border-t border-slate-200 dark:border-slate-800/50 text-center text-sm text-slate-500 dark:text-slate-400">
         <p>
           Built with Claude Code · Content auto-updated via MCP
         </p>
@@ -193,7 +193,7 @@ export default function HomePage() {
             href="https://buymeacoffee.com/curriculumbuilder"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-amber-500 dark:hover:text-amber-400 transition-colors"
+            className="hover:text-orange-500 dark:hover:text-orange-400 transition-colors"
           >
             Support this project &#9749;
           </a>

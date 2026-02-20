@@ -33,7 +33,7 @@ export default function CertificatePage() {
   if (authLoading || progressLoading) {
     return (
       <div className="py-16 text-center">
-        <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-800 animate-pulse mx-auto" />
+        <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 animate-pulse mx-auto" />
       </div>
     );
   }
@@ -43,15 +43,15 @@ export default function CertificatePage() {
     return (
       <div className="py-16 text-center max-w-md mx-auto">
         <div className="text-4xl mb-4">&#128274;</div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
           Certificate of Completion
         </h1>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+        <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
           Sign in and complete all 12 weeks to earn your certificate.
         </p>
         <Link
           href="/profile"
-          className="inline-flex px-6 py-3 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-semibold text-sm hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
+          className="inline-flex px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-orange-500 text-white font-semibold text-sm hover:opacity-90 transition-opacity"
         >
           Sign In
         </Link>
@@ -65,24 +65,24 @@ export default function CertificatePage() {
     return (
       <div className="py-16 text-center max-w-md mx-auto">
         <div className="text-4xl mb-4">&#128221;</div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
           Almost There!
         </h1>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+        <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">
           Complete {remaining} more week{remaining !== 1 ? "s" : ""} to earn your certificate.
         </p>
-        <div className="w-full h-3 rounded-full bg-gray-200 dark:bg-gray-800 overflow-hidden my-6 max-w-xs mx-auto">
+        <div className="w-full h-3 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden my-6 max-w-xs mx-auto">
           <div
             className="h-full rounded-full bg-emerald-500 transition-all duration-500"
             style={{ width: `${(completedWeeks.length / TOTAL_WEEKS) * 100}%` }}
           />
         </div>
-        <p className="text-xs text-gray-400 dark:text-gray-500 mb-6">
+        <p className="text-xs text-slate-400 dark:text-slate-500 mb-6">
           {completedWeeks.length}/{TOTAL_WEEKS} weeks completed
         </p>
         <Link
           href="/"
-          className="inline-flex px-6 py-3 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-semibold text-sm hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
+          className="inline-flex px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-orange-500 text-white font-semibold text-sm hover:opacity-90 transition-opacity"
         >
           Continue Learning
         </Link>
@@ -109,13 +109,13 @@ export default function CertificatePage() {
       <div className="flex items-center justify-between mb-8">
         <Link
           href="/profile"
-          className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+          className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
         >
           &larr; Back to Profile
         </Link>
         <button
           onClick={handlePrint}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition-colors print:hidden"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-orange-500 text-white font-semibold text-sm hover:opacity-90 transition-opacity print:hidden"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -134,7 +134,7 @@ export default function CertificatePage() {
       </div>
 
       {/* Instructions */}
-      <p className="text-center text-xs text-gray-400 dark:text-gray-500 mt-6 print:hidden">
+      <p className="text-center text-xs text-slate-400 dark:text-slate-500 mt-6 print:hidden">
         Tip: Use your browser&apos;s Print function (Ctrl/Cmd + P) and select &quot;Save as PDF&quot; to download.
       </p>
     </div>

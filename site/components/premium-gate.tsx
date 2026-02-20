@@ -35,38 +35,40 @@ export function PremiumGate({ weekNumber, children }: PremiumGateProps) {
       <div className="relative max-h-[400px] overflow-hidden">
         {children}
         {/* Gradient fade overlay */}
-        <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-gray-50 dark:from-gray-950 to-transparent pointer-events-none" />
+        <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-slate-50 dark:from-slate-950 to-transparent pointer-events-none" />
       </div>
 
       {/* Paywall CTA */}
       <div className="relative -mt-8 z-10">
-        <div className="p-8 rounded-2xl bg-white dark:bg-gray-900 border-2 border-emerald-200 dark:border-emerald-800 shadow-xl text-center">
-          <div className="text-3xl mb-3">&#128274;</div>
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-            Premium Content
-          </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-1 max-w-md mx-auto">
-            Week {weekNumber} is part of the Pro course. Unlock all remaining
-            weeks with a single payment.
-          </p>
-          <p className="text-xs text-gray-400 dark:text-gray-500 mb-6">
-            Lifetime access &middot; All future updates included &middot;
-            30-day money-back guarantee
-          </p>
+        <div className="gradient-border-animated">
+          <div className="relative z-10 p-8 rounded-2xl bg-white dark:bg-slate-900 shadow-xl text-center">
+            <div className="text-3xl mb-3">&#128274;</div>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+              Premium Content
+            </h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1 max-w-md mx-auto">
+              Week {weekNumber} is part of the Pro course. Unlock all remaining
+              weeks with a single payment.
+            </p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mb-6">
+              Lifetime access &middot; All future updates included &middot;
+              30-day money-back guarantee
+            </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link
-              href="/pricing"
-              className="inline-flex px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition-colors shadow-lg shadow-emerald-600/20"
-            >
-              Get Pro Access — {PRICE_DISPLAY}
-            </Link>
-            <Link
-              href="/pricing"
-              className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 underline underline-offset-2"
-            >
-              See what&apos;s included
-            </Link>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <Link
+                href="/pricing"
+                className="inline-flex px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-orange-500 text-white font-semibold text-sm hover:opacity-90 transition-opacity shadow-lg shadow-indigo-500/20"
+              >
+                Get Pro Access — {PRICE_DISPLAY}
+              </Link>
+              <Link
+                href="/pricing"
+                className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 underline underline-offset-2"
+              >
+                See what&apos;s included
+              </Link>
+            </div>
           </div>
         </div>
       </div>

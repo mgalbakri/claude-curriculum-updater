@@ -65,20 +65,20 @@ export default async function AppendixPage({ params }: AppendixPageProps) {
       <div className="flex items-center gap-2 mb-6 text-sm">
         <Link
           href="/"
-          className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+          className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
         >
           Home
         </Link>
-        <span className="text-gray-300 dark:text-gray-600">/</span>
-        <span className="text-gray-500 dark:text-gray-400">Appendices</span>
+        <span className="text-slate-300 dark:text-slate-600">/</span>
+        <span className="text-slate-500 dark:text-slate-400">Appendices</span>
       </div>
 
       {/* Header */}
       <header className="mb-10">
-        <div className="text-sm text-gray-500 dark:text-gray-400 mb-1 font-mono">
+        <div className="text-sm text-slate-500 dark:text-slate-400 mb-1 font-mono">
           Appendix {appendix.letter}
         </div>
-        <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
+        <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white">
           {appendix.title}
         </h1>
       </header>
@@ -89,15 +89,15 @@ export default async function AppendixPage({ params }: AppendixPageProps) {
       </section>
 
       {/* Navigation */}
-      <nav className="flex items-center justify-between pt-8 border-t border-gray-200 dark:border-gray-800">
+      <nav className="flex items-center justify-between pt-8 border-t border-slate-200 dark:border-slate-800">
         {prevAppendix ? (
           <Link
             href={`/appendix/${prevAppendix.letter.toLowerCase()}`}
-            className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+            className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
           >
             <span>←</span>
             <div>
-              <div className="text-xs text-gray-400 dark:text-gray-500">
+              <div className="text-xs text-slate-400 dark:text-slate-500">
                 Previous
               </div>
               <div className="font-medium">
@@ -108,11 +108,11 @@ export default async function AppendixPage({ params }: AppendixPageProps) {
         ) : (
           <Link
             href="/week/12"
-            className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+            className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
           >
             <span>←</span>
             <div>
-              <div className="text-xs text-gray-400 dark:text-gray-500">
+              <div className="text-xs text-slate-400 dark:text-slate-500">
                 Back to Course
               </div>
               <div className="font-medium">Week 12</div>
@@ -123,10 +123,10 @@ export default async function AppendixPage({ params }: AppendixPageProps) {
         {nextAppendix ? (
           <Link
             href={`/appendix/${nextAppendix.letter.toLowerCase()}`}
-            className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors text-right"
+            className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors text-right"
           >
             <div>
-              <div className="text-xs text-gray-400 dark:text-gray-500">
+              <div className="text-xs text-slate-400 dark:text-slate-500">
                 Next
               </div>
               <div className="font-medium">
@@ -138,10 +138,10 @@ export default async function AppendixPage({ params }: AppendixPageProps) {
         ) : (
           <Link
             href="/"
-            className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors text-right"
+            className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors text-right"
           >
             <div>
-              <div className="text-xs text-gray-400 dark:text-gray-500">
+              <div className="text-xs text-slate-400 dark:text-slate-500">
                 Done
               </div>
               <div className="font-medium">Back to Overview</div>

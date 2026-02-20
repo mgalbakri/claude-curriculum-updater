@@ -31,18 +31,18 @@ export function EmailSignup() {
 
   if (submitted) {
     return (
-      <section className="my-16 text-center p-8 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+      <section className="my-16 text-center p-8 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/50">
         <div className="text-2xl mb-2">&#10003;</div>
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-1">
           You&apos;re on the list!
         </h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
           We&apos;ll send you updates on new lessons, tips, and Claude Code news.
         </p>
         <a
           href={CHEAT_SHEET_PATH}
           download
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-semibold text-sm transition-colors"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-gradient-to-r from-indigo-500 to-orange-500 text-white font-semibold text-sm hover:opacity-90 transition-opacity"
         >
           &#8595; Download AI Coding Cheat Sheet (PDF)
         </a>
@@ -51,11 +51,11 @@ export function EmailSignup() {
   }
 
   return (
-    <section className="my-16 p-8 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-center">
-      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+    <section className="my-16 p-8 rounded-xl bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/50 text-center">
+      <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
         Stay Updated + Free Cheat Sheet
       </h3>
-      <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+      <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 max-w-md mx-auto">
         Subscribe and get the free <strong>AI Coding Cheat Sheet</strong> PDF — plus
         curriculum updates and Claude Code tips. No spam, ever.
       </p>
@@ -68,17 +68,17 @@ export function EmailSignup() {
           name="email"
           required
           placeholder="you@example.com"
-          className="w-full sm:flex-1 px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-500 focus:border-transparent text-sm"
+          className="w-full sm:flex-1 px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent text-sm"
         />
         <button
           type="submit"
           disabled={submitting}
-          className="w-full sm:w-auto px-6 py-3 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-semibold text-sm hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full sm:w-auto px-6 py-3 rounded-lg bg-gradient-to-r from-indigo-500 to-orange-500 text-white font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {submitting ? "Subscribing..." : "Subscribe"}
         </button>
       </form>
-      <p className="text-xs text-gray-400 dark:text-gray-600 mt-3">
+      <p className="text-xs text-slate-400 dark:text-slate-600 mt-3">
         Free forever. Unsubscribe anytime.
       </p>
     </section>

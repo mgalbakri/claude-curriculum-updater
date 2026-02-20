@@ -47,9 +47,9 @@ export async function generateMetadata({ params }: WeekPageProps) {
 }
 
 const phaseBadge: Record<number, string> = {
-  1: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400",
-  2: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400",
-  3: "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-400",
+  1: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400",
+  2: "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400",
+  3: "bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400",
 };
 
 export default async function WeekPage({ params }: WeekPageProps) {
@@ -72,11 +72,11 @@ export default async function WeekPage({ params }: WeekPageProps) {
       <div className="flex items-center gap-2 mb-6 text-sm">
         <Link
           href="/"
-          className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+          className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
         >
           Home
         </Link>
-        <span className="text-gray-300 dark:text-gray-600">/</span>
+        <span className="text-slate-300 dark:text-slate-600">/</span>
         <span
           className={`text-xs font-semibold uppercase tracking-wider px-2 py-0.5 rounded ${phaseBadge[week.phase] || phaseBadge[1]}`}
         >
@@ -86,14 +86,14 @@ export default async function WeekPage({ params }: WeekPageProps) {
 
       {/* Header */}
       <header className="mb-10">
-        <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+        <div className="text-sm text-slate-500 dark:text-slate-400 mb-1">
           Week {week.number} of 12
         </div>
-        <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-3">
+        <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-3">
           {week.title}
         </h1>
         {week.subtitle && (
-          <p className="text-lg text-gray-600 dark:text-gray-400 italic">
+          <p className="text-lg text-slate-600 dark:text-slate-400 italic">
             {week.subtitle}
           </p>
         )}
@@ -129,16 +129,16 @@ export default async function WeekPage({ params }: WeekPageProps) {
       {/* Topics */}
       {week.topics.length > 0 && (
         <section className="mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-3">
             Topics
           </h2>
           <ul className="space-y-1.5">
             {week.topics.map((topic, i) => (
               <li
                 key={i}
-                className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300"
+                className="flex items-start gap-2 text-sm text-slate-700 dark:text-slate-300"
               >
-                <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-600 flex-shrink-0" />
+                <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-600 flex-shrink-0" />
                 {topic}
               </li>
             ))}
@@ -151,16 +151,16 @@ export default async function WeekPage({ params }: WeekPageProps) {
         {/* Activities */}
         {week.activities.length > 0 && (
           <section className="mb-8">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-3">
               Activities
             </h2>
             <ul className="space-y-1.5">
               {week.activities.map((activity, i) => (
                 <li
                   key={i}
-                  className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300"
+                  className="flex items-start gap-2 text-sm text-slate-700 dark:text-slate-300"
                 >
-                  <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400 dark:bg-emerald-600 flex-shrink-0" />
+                  <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-indigo-400 dark:bg-indigo-600 flex-shrink-0" />
                   {activity}
                 </li>
               ))}
@@ -171,10 +171,10 @@ export default async function WeekPage({ params }: WeekPageProps) {
         {/* Skills */}
         {week.skills && (
           <section className="mb-10">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-3">
               Skills You&apos;ll Gain
             </h2>
-            <p className="text-sm text-gray-700 dark:text-gray-300">
+            <p className="text-sm text-slate-700 dark:text-slate-300">
               {week.skills}
             </p>
           </section>
@@ -183,7 +183,7 @@ export default async function WeekPage({ params }: WeekPageProps) {
         {/* Full Content (markdown) */}
         {week.content && (
           <section className="mb-12">
-            <hr className="border-gray-200 dark:border-gray-800 mb-8" />
+            <hr className="border-slate-200 dark:border-slate-800 mb-8" />
             <MarkdownRenderer content={week.content} />
           </section>
         )}
@@ -196,15 +196,15 @@ export default async function WeekPage({ params }: WeekPageProps) {
       <ContextualToolCta weekNumber={weekNum} />
 
       {/* Navigation */}
-      <nav className="flex items-center justify-between pt-8 border-t border-gray-200 dark:border-gray-800">
+      <nav className="flex items-center justify-between pt-8 border-t border-slate-200 dark:border-slate-800/50">
         {prevWeek ? (
           <Link
             href={`/week/${prevWeek.number}`}
-            className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+            className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
           >
             <span>←</span>
             <div>
-              <div className="text-xs text-gray-400 dark:text-gray-500">
+              <div className="text-xs text-slate-400 dark:text-slate-500">
                 Previous
               </div>
               <div className="font-medium">
@@ -219,10 +219,10 @@ export default async function WeekPage({ params }: WeekPageProps) {
         {nextWeek ? (
           <Link
             href={`/week/${nextWeek.number}`}
-            className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors text-right"
+            className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors text-right"
           >
             <div>
-              <div className="text-xs text-gray-400 dark:text-gray-500">
+              <div className="text-xs text-slate-400 dark:text-slate-500">
                 Next
               </div>
               <div className="font-medium">
@@ -234,10 +234,10 @@ export default async function WeekPage({ params }: WeekPageProps) {
         ) : (
           <Link
             href="/"
-            className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors text-right"
+            className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors text-right"
           >
             <div>
-              <div className="text-xs text-gray-400 dark:text-gray-500">
+              <div className="text-xs text-slate-400 dark:text-slate-500">
                 Finished!
               </div>
               <div className="font-medium">Back to Overview</div>

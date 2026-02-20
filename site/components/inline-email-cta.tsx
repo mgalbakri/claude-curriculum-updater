@@ -42,15 +42,15 @@ export function InlineEmailCta({ message }: { message: string }) {
 
   if (submitted) {
     return (
-      <div className="my-6 py-3 text-center text-sm font-medium text-emerald-600 dark:text-emerald-400">
+      <div className="my-6 py-3 text-center text-sm font-medium text-indigo-600 dark:text-indigo-400">
         Subscribed! We&apos;ll keep you posted.
       </div>
     );
   }
 
   return (
-    <div className="my-6 flex flex-col sm:flex-row items-center justify-center gap-3 py-4 px-4 rounded-xl bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800">
-      <p className="text-sm text-gray-600 dark:text-gray-400">
+    <div className="my-6 flex flex-col sm:flex-row items-center justify-center gap-3 py-4 px-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/50">
+      <p className="text-sm text-slate-600 dark:text-slate-400">
         {message}
       </p>
       <form onSubmit={handleSubmit} className="flex items-center gap-2 flex-shrink-0">
@@ -59,12 +59,12 @@ export function InlineEmailCta({ message }: { message: string }) {
           name="email"
           required
           placeholder="you@example.com"
-          className="w-44 px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400 focus:border-transparent text-sm"
+          className="w-44 px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent text-sm"
         />
         <button
           type="submit"
           disabled={submitting}
-          className="px-3 py-1.5 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-semibold text-sm hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-indigo-500 to-orange-500 text-white font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {submitting ? "..." : "Subscribe"}
         </button>

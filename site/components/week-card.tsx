@@ -17,10 +17,10 @@ export function WeekCard({ week }: WeekCardProps) {
   return (
     <Link
       href={`/week/${week.number}`}
-      className="block p-5 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 hover:shadow-md transition-all bg-white dark:bg-gray-900"
+      className="block p-5 rounded-xl border border-slate-200 dark:border-slate-800/50 hover:border-indigo-300 dark:hover:border-indigo-500/40 hover:shadow-md hover:-translate-y-0.5 transition-all bg-white dark:bg-slate-900/50"
     >
       <div className="flex items-start gap-3">
-        <span className="relative flex-shrink-0 w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-sm font-bold text-gray-600 dark:text-gray-400">
+        <span className="relative flex-shrink-0 w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-sm font-bold text-slate-600 dark:text-slate-400">
           {week.number}
           {isComplete && (
             <span className="absolute -top-1 -right-1">
@@ -30,19 +30,19 @@ export function WeekCard({ week }: WeekCardProps) {
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+            <h3 className="font-semibold text-slate-900 dark:text-slate-100">
               {week.title}
             </h3>
             <PremiumBadge weekNumber={week.number} />
           </div>
-          <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
+          <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2">
             {week.subtitle || week.objective}
           </p>
           <div className="flex flex-wrap gap-1.5 mt-2">
-            <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
+            <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
               {week.topics.length} topics
             </span>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
+            <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
               {week.activities.length} activities
             </span>
           </div>

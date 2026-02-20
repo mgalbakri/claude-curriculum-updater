@@ -23,7 +23,7 @@ export function MobileNav({ phases, appendices }: MobileNavProps) {
     <div className="lg:hidden">
       <button
         onClick={() => setOpen(!open)}
-        className="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+        className="p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
         aria-label="Toggle navigation"
       >
         {open ? (
@@ -38,10 +38,10 @@ export function MobileNav({ phases, appendices }: MobileNavProps) {
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 right-0 bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800 shadow-lg z-50 max-h-[70vh] overflow-y-auto p-4">
+        <div className="absolute top-full left-0 right-0 bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 shadow-lg z-50 max-h-[70vh] overflow-y-auto p-4">
           {phases.map((phase) => (
             <div key={phase.number} className="mb-4">
-              <div className="text-xs font-semibold uppercase tracking-wider mb-1 text-gray-500">
+              <div className="text-xs font-semibold uppercase tracking-wider mb-1 text-slate-500">
                 Phase {phase.number}: {phase.name}
               </div>
               {phase.weeks.map((week) => {
@@ -55,8 +55,8 @@ export function MobileNav({ phases, appendices }: MobileNavProps) {
                     onClick={() => setOpen(false)}
                     className={`flex items-center gap-1.5 px-3 py-2 rounded text-sm ${
                       isActive
-                        ? "bg-gray-100 dark:bg-gray-800 font-medium"
-                        : "text-gray-600 dark:text-gray-400"
+                        ? "bg-slate-100 dark:bg-slate-800 font-medium"
+                        : "text-slate-600 dark:text-slate-400"
                     }`}
                   >
                     <ProgressIndicator completed={isComplete} />
@@ -71,7 +71,7 @@ export function MobileNav({ phases, appendices }: MobileNavProps) {
           ))}
           {appendices.length > 0 && (
             <div className="mb-4">
-              <div className="text-xs font-semibold uppercase tracking-wider mb-1 text-gray-500">
+              <div className="text-xs font-semibold uppercase tracking-wider mb-1 text-slate-500">
                 Appendices
               </div>
               {appendices.map((a) => (
@@ -79,7 +79,7 @@ export function MobileNav({ phases, appendices }: MobileNavProps) {
                   key={a.letter}
                   href={`/appendix/${a.letter.toLowerCase()}`}
                   onClick={() => setOpen(false)}
-                  className="block px-3 py-2 rounded text-sm text-gray-600 dark:text-gray-400"
+                  className="block px-3 py-2 rounded text-sm text-slate-600 dark:text-slate-400"
                 >
                   {a.letter}. {a.title}
                 </Link>

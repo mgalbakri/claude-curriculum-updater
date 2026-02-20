@@ -11,27 +11,27 @@ interface MarkdownRendererProps {
 
 const components: Components = {
   h4: ({ children }) => (
-    <h4 className="text-lg font-semibold mt-8 mb-3 text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
+    <h4 className="text-lg font-semibold mt-8 mb-3 text-slate-900 dark:text-slate-100 border-b border-slate-200 dark:border-slate-700 pb-2">
       {children}
     </h4>
   ),
   h5: ({ children }) => (
-    <h5 className="text-base font-semibold mt-6 mb-2 text-gray-800 dark:text-gray-200">
+    <h5 className="text-base font-semibold mt-6 mb-2 text-slate-800 dark:text-slate-200">
       {children}
     </h5>
   ),
   p: ({ children }) => (
-    <p className="mb-4 leading-relaxed text-gray-700 dark:text-gray-300">
+    <p className="mb-4 leading-relaxed text-slate-700 dark:text-slate-300">
       {children}
     </p>
   ),
   ul: ({ children }) => (
-    <ul className="mb-4 space-y-1.5 list-disc pl-6 text-gray-700 dark:text-gray-300">
+    <ul className="mb-4 space-y-1.5 list-disc pl-6 text-slate-700 dark:text-slate-300">
       {children}
     </ul>
   ),
   ol: ({ children }) => (
-    <ol className="mb-4 space-y-1.5 list-decimal pl-6 text-gray-700 dark:text-gray-300">
+    <ol className="mb-4 space-y-1.5 list-decimal pl-6 text-slate-700 dark:text-slate-300">
       {children}
     </ol>
   ),
@@ -41,7 +41,7 @@ const components: Components = {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="text-blue-600 dark:text-blue-400 hover:underline"
+      className="text-indigo-600 dark:text-indigo-400 hover:underline"
     >
       {children}
     </a>
@@ -50,7 +50,7 @@ const components: Components = {
     const isInline = !className;
     if (isInline) {
       return (
-        <code className="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-sm font-mono text-pink-600 dark:text-pink-400">
+        <code className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-sm font-mono text-orange-600 dark:text-orange-400">
           {children}
         </code>
       );
@@ -62,36 +62,36 @@ const components: Components = {
     );
   },
   pre: ({ children }) => (
-    <pre className="mb-4 p-4 rounded-lg bg-gray-900 dark:bg-gray-950 text-sm overflow-x-auto border border-gray-200 dark:border-gray-700">
+    <pre className="mb-4 p-4 rounded-lg bg-slate-900 dark:bg-slate-950 text-sm overflow-x-auto border border-slate-200 dark:border-slate-700">
       {children}
     </pre>
   ),
   table: ({ children }) => (
-    <div className="mb-4 overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+    <div className="mb-4 overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700">
       <table className="min-w-full text-sm">{children}</table>
     </div>
   ),
   thead: ({ children }) => (
-    <thead className="bg-gray-50 dark:bg-gray-800">{children}</thead>
+    <thead className="bg-slate-50 dark:bg-slate-800">{children}</thead>
   ),
   th: ({ children }) => (
-    <th className="px-4 py-2.5 text-left font-semibold text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700">
+    <th className="px-4 py-2.5 text-left font-semibold text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-700">
       {children}
     </th>
   ),
   td: ({ children }) => (
-    <td className="px-4 py-2.5 text-gray-700 dark:text-gray-300 border-b border-gray-100 dark:border-gray-800">
+    <td className="px-4 py-2.5 text-slate-700 dark:text-slate-300 border-b border-slate-100 dark:border-slate-800">
       {children}
     </td>
   ),
   blockquote: ({ children }) => (
-    <blockquote className="mb-4 pl-4 border-l-4 border-blue-400 dark:border-blue-600 bg-blue-50 dark:bg-blue-950/30 py-2 px-3 rounded-r-lg text-gray-700 dark:text-gray-300">
+    <blockquote className="mb-4 pl-4 border-l-4 border-indigo-400 dark:border-indigo-600 bg-indigo-50 dark:bg-indigo-950/30 py-2 px-3 rounded-r-lg text-slate-700 dark:text-slate-300">
       {children}
     </blockquote>
   ),
-  hr: () => <hr className="my-8 border-gray-200 dark:border-gray-700" />,
+  hr: () => <hr className="my-8 border-slate-200 dark:border-slate-700" />,
   strong: ({ children }) => (
-    <strong className="font-semibold text-gray-900 dark:text-gray-100">
+    <strong className="font-semibold text-slate-900 dark:text-slate-100">
       {children}
     </strong>
   ),

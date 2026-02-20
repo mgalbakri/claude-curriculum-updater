@@ -88,7 +88,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100`}
       >
         <script
           type="application/ld+json"
@@ -127,7 +127,7 @@ export default function RootLayout({
             }),
           }}
         />
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <AuthProvider>
             <ProgressProvider>
               <div className="flex min-h-screen overflow-x-hidden">
@@ -137,7 +137,7 @@ export default function RootLayout({
                 />
                 <div className="flex-1 min-w-0">
                   {/* Mobile header */}
-                  <header className="lg:hidden sticky top-0 z-40 flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-950/80 backdrop-blur-sm">
+                  <header className="lg:hidden sticky top-0 z-40 flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm">
                     <MobileNav
                       phases={curriculum.phases}
                       appendices={curriculum.appendices}
