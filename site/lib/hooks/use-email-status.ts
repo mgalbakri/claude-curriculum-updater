@@ -9,9 +9,13 @@ export function useEmailStatus() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    setIsSubscribed(localStorage.getItem(LS_EMAIL_SUBSCRIBED) === "1");
-    setIsGateSkipped(localStorage.getItem(LS_EMAIL_GATE_SKIPPED) === "1");
-    setIsLoading(false);
+    const subscribed = localStorage.getItem(LS_EMAIL_SUBSCRIBED) === "1";
+    const skipped = localStorage.getItem(LS_EMAIL_GATE_SKIPPED) === "1";
+    requestAnimationFrame(() => {
+      setIsSubscribed(subscribed);
+      setIsGateSkipped(skipped);
+      setIsLoading(false);
+    });
   }, []);
 
   function markSubscribed() {

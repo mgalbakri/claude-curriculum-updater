@@ -25,16 +25,18 @@ const NOOP_RESULT = { data: { session: null }, error: null, count: null, status:
 // Supports: supabase.auth.getSession(), supabase.from("x").select().eq(), await ..., etc.
 function makeNoopProxy(): object {
   // A callable function that returns another no-op proxy when invoked
-  const fn = (..._args: unknown[]) => makeNoopProxy();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const fn = (...args: unknown[]) => makeNoopProxy();
 
   const handler: ProxyHandler<typeof fn> = {
-    get(_target, prop) {
+    get(_, prop) {
       // When code does `await proxy` or `proxy.then(...)`, return a resolved promise
       if (prop === "then") {
         return (resolve?: (v: unknown) => unknown) => Promise.resolve(NOOP_RESULT).then(resolve);
       }
       if (prop === "catch" || prop === "finally") {
-        return (..._args: unknown[]) => Promise.resolve(NOOP_RESULT);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        return (...args: unknown[]) => Promise.resolve(NOOP_RESULT);
       }
       // .data for direct property access — returns object so destructuring works
       // e.g. `const { data: { subscription } } = supabase.auth.onAuthStateChange(...)`
@@ -46,7 +48,7 @@ function makeNoopProxy(): object {
       return makeNoopProxy();
     },
     // Allow the proxy itself to be called as a function
-    apply(_target, _thisArg, _args) {
+    apply() {
       return makeNoopProxy();
     },
   };
@@ -54,7 +56,7 @@ function makeNoopProxy(): object {
 }
 
 export const supabase: SupabaseClient = new Proxy({} as SupabaseClient, {
-  get(_target, prop, receiver) {
+  get(_, prop, receiver) {
     const client = getSupabase();
     if (!client) {
       if (prop === "then") return undefined; // top-level proxy should not be thenable

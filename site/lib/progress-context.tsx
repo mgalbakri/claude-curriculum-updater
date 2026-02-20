@@ -57,7 +57,9 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   }, [user]);
 
   useEffect(() => {
-    fetchProgress();
+    requestAnimationFrame(() => {
+      fetchProgress();
+    });
   }, [fetchProgress]);
 
   function isWeekComplete(weekNumber: number): boolean {

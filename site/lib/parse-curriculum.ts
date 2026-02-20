@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import type { CurriculumData, Week, Appendix, Phase } from "./types";
+import type { CurriculumData, Week, Appendix } from "./types";
 
 /**
  * Look for curriculum.md in several locations.

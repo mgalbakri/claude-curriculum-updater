@@ -11,18 +11,22 @@ export function usePremiumStatus() {
 
   useEffect(() => {
     // Check localStorage fallback (for users who purchased without logging in)
+    let premium = false;
     try {
       const token = localStorage.getItem(LS_PREMIUM_TOKEN);
       if (token) {
         const parsed = JSON.parse(atob(token));
         if (parsed.orderId || parsed.sessionId) {
-          setLocalPremium(true);
+          premium = true;
         }
       }
     } catch {
       // Invalid token — ignore
     }
-    setIsLoading(false);
+    requestAnimationFrame(() => {
+      setLocalPremium(premium);
+      setIsLoading(false);
+    });
   }, []);
 
   return {

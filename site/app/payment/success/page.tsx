@@ -6,6 +6,26 @@ import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { LS_PREMIUM_TOKEN, COURSE_IS_FREE } from "@/lib/constants";
 
+function FreeCourseContent() {
+  return (
+    <div className="py-16 text-center max-w-md mx-auto">
+      <div className="text-4xl mb-4">&#127881;</div>
+      <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+        The Course Is Free!
+      </h1>
+      <p className="text-sm text-slate-600 dark:text-slate-400 mb-8">
+        All 12 weeks are currently free during early access. No payment needed — just start learning!
+      </p>
+      <Link
+        href="/week/1"
+        className="inline-flex px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-orange-500 text-white font-semibold text-sm hover:opacity-90 transition-opacity"
+      >
+        Start Week 1 &rarr;
+      </Link>
+    </div>
+  );
+}
+
 function PaymentSuccessContent() {
   const searchParams = useSearchParams();
   const { refreshProfile } = useAuth();
@@ -14,35 +34,16 @@ function PaymentSuccessContent() {
   );
   const [email, setEmail] = useState("");
 
-  // While the course is free, redirect anyone who lands here
-  if (COURSE_IS_FREE) {
-    return (
-      <div className="py-16 text-center max-w-md mx-auto">
-        <div className="text-4xl mb-4">&#127881;</div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
-          The Course Is Free!
-        </h1>
-        <p className="text-sm text-slate-600 dark:text-slate-400 mb-8">
-          All 12 weeks are currently free during early access. No payment needed — just start learning!
-        </p>
-        <Link
-          href="/week/1"
-          className="inline-flex px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-orange-500 text-white font-semibold text-sm hover:opacity-90 transition-opacity"
-        >
-          Start Week 1 &rarr;
-        </Link>
-      </div>
-    );
-  }
-
   useEffect(() => {
-    const orderId = searchParams.get("order_id");
-    if (!orderId) {
-      setStatus("error");
-      return;
-    }
+    if (COURSE_IS_FREE) return;
 
     async function verify() {
+      const orderId = searchParams.get("order_id");
+      if (!orderId) {
+        setStatus("error");
+        return;
+      }
+
       try {
         const res = await fetch(
           `/api/verify-session?order_id=${orderId}`
@@ -66,6 +67,11 @@ function PaymentSuccessContent() {
 
     verify();
   }, [searchParams, refreshProfile]);
+
+  // While the course is free, show free message
+  if (COURSE_IS_FREE) {
+    return <FreeCourseContent />;
+  }
 
   if (status === "verifying") {
     return (
