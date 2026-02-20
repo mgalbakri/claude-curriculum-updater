@@ -60,7 +60,7 @@ export async function POST(request: Request) {
       const err = await res.text();
       console.error("Lemon Squeezy checkout error:", err);
       return NextResponse.json(
-        { error: "Failed to create checkout" },
+        { error: "Failed to create checkout", detail: err },
         { status: 500 }
       );
     }
@@ -72,7 +72,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Checkout error:", error);
     return NextResponse.json(
-      { error: "Failed to create checkout" },
+      { error: "Checkout exception", detail: String(error) },
       { status: 500 }
     );
   }
