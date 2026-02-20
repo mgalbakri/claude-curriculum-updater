@@ -169,8 +169,8 @@ export default function HomePage() {
           Support This Project
         </h2>
         <p className="text-sm text-slate-600 dark:text-slate-400 max-w-md mx-auto mb-5">
-          Weeks 1–4 are free to everyone. If this course has helped you,
-          consider buying me a coffee to keep it growing.
+          The entire course is 100% free during early access. If it&apos;s
+          helped you, consider buying me a coffee to keep it growing.
         </p>
         <a
           href="https://buymeacoffee.com/curriculumbuilder"

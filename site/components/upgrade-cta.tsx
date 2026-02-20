@@ -2,10 +2,13 @@
 
 import Link from "next/link";
 import { usePremiumStatus } from "@/lib/hooks/use-premium-status";
-import { PRICE_DISPLAY } from "@/lib/constants";
+import { COURSE_IS_FREE, PRICE_DISPLAY } from "@/lib/constants";
 
 export function UpgradeCta() {
   const { isPremium, isLoading } = usePremiumStatus();
+
+  // Hide entirely while the course is free
+  if (COURSE_IS_FREE) return null;
 
   if (isLoading || isPremium) return null;
 

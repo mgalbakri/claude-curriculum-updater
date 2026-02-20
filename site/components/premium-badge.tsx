@@ -1,7 +1,7 @@
 "use client";
 
 import { usePremiumStatus } from "@/lib/hooks/use-premium-status";
-import { FREE_WEEKS } from "@/lib/constants";
+import { FREE_WEEKS, COURSE_IS_FREE } from "@/lib/constants";
 
 interface PremiumBadgeProps {
   weekNumber: number;
@@ -9,6 +9,9 @@ interface PremiumBadgeProps {
 
 export function PremiumBadge({ weekNumber }: PremiumBadgeProps) {
   const { isPremium } = usePremiumStatus();
+
+  // No badges while the course is free
+  if (COURSE_IS_FREE) return null;
 
   // No badge on free weeks
   if ((FREE_WEEKS as readonly number[]).includes(weekNumber)) {
