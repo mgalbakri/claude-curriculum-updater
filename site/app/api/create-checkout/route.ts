@@ -12,7 +12,7 @@ export async function POST(request: Request) {
   }
 
   // Debug: log key length and variant (remove after debugging)
-  console.log(`Checkout: apiKey length=${apiKey.length}, variantId=${variantId}`);
+  console.log(`Checkout debug: apiKey_len=${apiKey.length} variant=${variantId} apiKey_end=${apiKey.slice(-10)}`);
 
   const { email, userId } = await request.json();
 
