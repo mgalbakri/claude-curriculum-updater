@@ -7,7 +7,7 @@ create table if not exists public.profiles (
   display_name text,
   avatar_url text,
   is_premium boolean default false,
-  stripe_session_id text,
+  order_id text,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );

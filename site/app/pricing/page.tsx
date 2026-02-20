@@ -1,10 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { usePremiumStatus } from "@/lib/hooks/use-premium-status";
-import { STRIPE_PRICE_DISPLAY } from "@/lib/constants";
+import { PRICE_DISPLAY } from "@/lib/constants";
 
 const freeFeatures = [
   "Weeks 1–4: Foundation + First App",
@@ -28,6 +28,13 @@ export default function PricingPage() {
   const { isPremium } = usePremiumStatus();
   const [loading, setLoading] = useState(false);
 
+  // Initialize Lemon.js overlay when component mounts
+  useEffect(() => {
+    if (typeof window.createLemonSqueezy === "function") {
+      window.createLemonSqueezy();
+    }
+  }, []);
+
   async function handleCheckout() {
     setLoading(true);
     try {
@@ -41,7 +48,12 @@ export default function PricingPage() {
       });
       const { url } = await res.json();
       if (url) {
-        window.location.href = url;
+        // Open in Lemon.js overlay if available, otherwise redirect
+        if (window.LemonSqueezy?.Url?.Open) {
+          window.LemonSqueezy.Url.Open(url);
+        } else {
+          window.location.href = url;
+        }
       }
     } catch (error) {
       console.error("Checkout error:", error);
@@ -114,7 +126,7 @@ export default function PricingPage() {
             Pro
           </div>
           <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
-            {STRIPE_PRICE_DISPLAY}
+            {PRICE_DISPLAY}
           </div>
           <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
             One-time payment, lifetime access
@@ -130,7 +142,7 @@ export default function PricingPage() {
               disabled={loading}
               className="block w-full text-center px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? "Loading..." : `Get Pro Access — ${STRIPE_PRICE_DISPLAY}`}
+              {loading ? "Loading..." : `Get Pro Access — ${PRICE_DISPLAY}`}
             </button>
           )}
 

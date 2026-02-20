@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePremiumStatus } from "@/lib/hooks/use-premium-status";
-import { STRIPE_PRICE_DISPLAY } from "@/lib/constants";
+import { PRICE_DISPLAY } from "@/lib/constants";
 
 export function ProPromoBanner() {
   const { isPremium, isLoading } = usePremiumStatus();
@@ -28,7 +28,7 @@ export function ProPromoBanner() {
         </div>
         <div className="flex-shrink-0 text-center">
           <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
-            {STRIPE_PRICE_DISPLAY}
+            {PRICE_DISPLAY}
           </div>
           <div className="text-xs text-gray-500 dark:text-gray-400 mb-3">
             one-time payment

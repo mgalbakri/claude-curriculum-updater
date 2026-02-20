@@ -1,43 +1,78 @@
 import { NextResponse } from "next/server";
-import { getStripe } from "@/lib/stripe";
-import { STRIPE_PRICE_AMOUNT } from "@/lib/constants";
 
 export async function POST(request: Request) {
-  try {
-    const body = await request.json().catch(() => ({}));
-    const { email, userId } = body as { email?: string; userId?: string };
+  const apiKey = process.env.LEMON_SQUEEZY_API_KEY;
+  const variantId = process.env.NEXT_PUBLIC_LEMON_SQUEEZY_VARIANT_ID;
 
-    const session = await getStripe().checkout.sessions.create({
-      mode: "payment",
-      payment_method_types: ["card"],
-      line_items: [
-        {
-          price_data: {
-            currency: "usd",
-            unit_amount: STRIPE_PRICE_AMOUNT,
-            product_data: {
-              name: "Agent Code Academy Pro",
-              description:
-                "Lifetime access to all 12 weeks of the AI coding course",
+  if (!apiKey || !variantId) {
+    return NextResponse.json(
+      { error: "Payment not configured" },
+      { status: 500 }
+    );
+  }
+
+  const { email, userId } = await request.json();
+
+  try {
+    const res = await fetch("https://api.lemonsqueezy.com/v1/checkouts", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        Accept: "application/vnd.api+json",
+        "Content-Type": "application/vnd.api+json",
+      },
+      body: JSON.stringify({
+        data: {
+          type: "checkouts",
+          attributes: {
+            checkout_options: {
+              embed: true,
+            },
+            checkout_data: {
+              email: email || undefined,
+              custom: {
+                user_id: userId || "",
+              },
+            },
+            product_options: {
+              redirect_url: "https://agentcodeacademy.com/payment/success",
             },
           },
-          quantity: 1,
+          relationships: {
+            store: {
+              data: {
+                type: "stores",
+                id: process.env.LEMON_SQUEEZY_STORE_ID || "297028",
+              },
+            },
+            variant: {
+              data: {
+                type: "variants",
+                id: variantId,
+              },
+            },
+          },
         },
-      ],
-      ...(email ? { customer_email: email } : {}),
-      metadata: {
-        product: "aca-pro-lifetime",
-        ...(userId ? { userId } : {}),
-      },
-      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/pricing`,
+      }),
     });
 
-    return NextResponse.json({ sessionId: session.id, url: session.url });
+    if (!res.ok) {
+      const err = await res.text();
+      console.error("Lemon Squeezy checkout error:", err);
+      return NextResponse.json(
+        { error: "Failed to create checkout" },
+        { status: 500 }
+      );
+    }
+
+    const data = await res.json();
+    const checkoutUrl = data.data?.attributes?.url;
+
+    return NextResponse.json({ url: checkoutUrl });
   } catch (error) {
-    console.error("Stripe checkout error:", error);
+    console.error("Checkout error:", error);
     return NextResponse.json(
-      { error: "Failed to create checkout session" },
+      { error: "Failed to create checkout" },
       { status: 500 }
     );
   }

@@ -15,8 +15,8 @@ function PaymentSuccessContent() {
   const [email, setEmail] = useState("");
 
   useEffect(() => {
-    const sessionId = searchParams.get("session_id");
-    if (!sessionId) {
+    const orderId = searchParams.get("order_id");
+    if (!orderId) {
       setStatus("error");
       return;
     }
@@ -24,7 +24,7 @@ function PaymentSuccessContent() {
     async function verify() {
       try {
         const res = await fetch(
-          `/api/verify-session?session_id=${sessionId}`
+          `/api/verify-session?order_id=${orderId}`
         );
         if (!res.ok) {
           setStatus("error");

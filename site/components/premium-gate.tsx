@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePremiumStatus } from "@/lib/hooks/use-premium-status";
-import { FREE_WEEKS, STRIPE_PRICE_DISPLAY } from "@/lib/constants";
+import { FREE_WEEKS, PRICE_DISPLAY } from "@/lib/constants";
 import type { ReactNode } from "react";
 
 interface PremiumGateProps {
@@ -59,7 +59,7 @@ export function PremiumGate({ weekNumber, children }: PremiumGateProps) {
               href="/pricing"
               className="inline-flex px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition-colors shadow-lg shadow-emerald-600/20"
             >
-              Get Pro Access — {STRIPE_PRICE_DISPLAY}
+              Get Pro Access — {PRICE_DISPLAY}
             </Link>
             <Link
               href="/pricing"

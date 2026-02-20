@@ -15,7 +15,7 @@ export function usePremiumStatus() {
       const token = localStorage.getItem(LS_PREMIUM_TOKEN);
       if (token) {
         const parsed = JSON.parse(atob(token));
-        if (parsed.sessionId) {
+        if (parsed.orderId || parsed.sessionId) {
           setLocalPremium(true);
         }
       }

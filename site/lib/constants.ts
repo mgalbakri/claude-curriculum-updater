@@ -13,9 +13,9 @@ export const FREE_WEEKS = [1, 2, 3, 4] as const;
 export const PREMIUM_WEEKS = [5, 6, 7, 8, 9, 10, 11, 12] as const;
 export const TOTAL_WEEKS = 12;
 
-// Stripe
-export const STRIPE_PRICE_AMOUNT = 4900; // cents
-export const STRIPE_PRICE_DISPLAY = "$49";
+// Pricing
+export const PRICE_AMOUNT = 4900; // cents
+export const PRICE_DISPLAY = "$49";
 
 // Lead magnet
 export const CHEAT_SHEET_PATH = "/ai-coding-cheat-sheet.pdf";
