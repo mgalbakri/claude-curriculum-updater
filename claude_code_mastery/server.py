@@ -110,41 +110,6 @@ class AnalyzeGapsInput(BaseModel):
     )
 
 
-class ApplyUpdateInput(BaseModel):
-    """Input for applying an update to the curriculum."""
-    model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
-
-    curriculum_path: str = Field(
-        ...,
-        description="Path to the curriculum markdown file to update",
-        min_length=1,
-    )
-    week: int = Field(
-        ...,
-        description="Week number to update (1-12), or 0 to add a new appendix section",
-        ge=0, le=12,
-    )
-    section_title: str = Field(
-        ...,
-        description="Title of the new or updated section (e.g., 'Agent Teams Configuration')",
-        min_length=1, max_length=200,
-    )
-    content: str = Field(
-        ...,
-        description="The content to add or replace in markdown format",
-        min_length=1,
-    )
-    action: str = Field(
-        default="append",
-        description="How to apply: 'append' (add to week), 'replace' (replace section), 'new' (new week/appendix)",
-    )
-    reason: str = Field(
-        ...,
-        description="Brief explanation of why this update is needed",
-        min_length=1, max_length=500,
-    )
-
-
 class SetCurriculumPathInput(BaseModel):
     """Input for setting the curriculum file path."""
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
@@ -369,37 +334,55 @@ async def curriculum_analyze_gaps(params: AnalyzeGapsInput) -> str:
         "openWorldHint": False,
     }
 )
-async def curriculum_apply_update(params: ApplyUpdateInput) -> str:
+async def curriculum_apply_update(
+    curriculum_path: str,
+    week: int,
+    section_title: str,
+    content: str,
+    reason: str,
+    action: str = "append",
+) -> str:
     """Apply a specific update to the curriculum markdown file.
 
     Modifies the curriculum file by appending content to an existing week,
     replacing a section, or adding a new appendix entry.
 
     Args:
-        params (ApplyUpdateInput): Update parameters including:
-            - curriculum_path (str): Path to the curriculum file
-            - week (int): Week number (1-12) or 0 for new appendix
-            - section_title (str): Title of the section to add/update
-            - content (str): Markdown content to insert
-            - action (str): 'append', 'replace', or 'new'
-            - reason (str): Why this update is needed
+        curriculum_path: Path to the curriculum markdown file to update.
+        week: Week number to update (1-12), or 0 to add a new appendix section.
+        section_title: Title of the new or updated section (e.g., 'Agent Teams Configuration').
+        content: The content to add or replace in markdown format.
+        reason: Brief explanation of why this update is needed.
+        action: How to apply: 'append' (add to week), 'replace' (replace section), 'new' (new week/appendix).
 
     Returns:
         str: Confirmation of the update with details of what changed
     """
     try:
+        # Validate inputs
+        if not curriculum_path:
+            return "Error: curriculum_path is required."
+        if week < 0 or week > 12:
+            return "Error: week must be between 0 and 12."
+        if not section_title:
+            return "Error: section_title is required."
+        if not content:
+            return "Error: content is required."
+        if not reason:
+            return "Error: reason is required."
+
         # Load current curriculum
-        current = load_curriculum_file(params.curriculum_path)
+        current = load_curriculum_file(curriculum_path)
         if current is None:
-            return f"Error: Could not read curriculum file at '{params.curriculum_path}'."
+            return f"Error: Could not read curriculum file at '{curriculum_path}'."
 
         # Build a CurriculumUpdate and apply it
         cu = CurriculumUpdate(
-            week=params.week,
-            section=params.section_title,
-            action=params.action,
-            content=params.content,
-            reason=params.reason,
+            week=week,
+            section=section_title,
+            action=action,
+            content=content,
+            reason=reason,
         )
         try:
             updated = apply_single_update(current, cu)
@@ -407,24 +390,24 @@ async def curriculum_apply_update(params: ApplyUpdateInput) -> str:
             return f"Error: {e}"
 
         # Save the updated file
-        if save_curriculum_file(params.curriculum_path, updated):
+        if save_curriculum_file(curriculum_path, updated):
             mark_update_applied(
-                f"manual::{params.section_title[:50]}",
-                f"Week {params.week}: {params.section_title} ({params.action})"
+                f"manual::{section_title[:50]}",
+                f"Week {week}: {section_title} ({action})"
             )
             # Sync to site/ and external copies
-            _sync_to_site(params.curriculum_path, updated)
+            _sync_to_site(curriculum_path, updated)
 
             return (
-                f"✅ **Curriculum updated successfully!**\n\n"
-                f"- **File:** {params.curriculum_path}\n"
-                f"- **Week:** {'Appendix' if params.week == 0 else f'Week {params.week}'}\n"
-                f"- **Section:** {params.section_title}\n"
-                f"- **Action:** {params.action}\n"
-                f"- **Reason:** {params.reason}\n"
+                f"**Curriculum updated successfully!**\n\n"
+                f"- **File:** {curriculum_path}\n"
+                f"- **Week:** {'Appendix' if week == 0 else f'Week {week}'}\n"
+                f"- **Section:** {section_title}\n"
+                f"- **Action:** {action}\n"
+                f"- **Reason:** {reason}\n"
             )
         else:
-            return f"Error: Failed to save updated curriculum to '{params.curriculum_path}'."
+            return f"Error: Failed to save updated curriculum to '{curriculum_path}'."
 
     except Exception as e:
         return f"Error applying update: {type(e).__name__}: {str(e)}"

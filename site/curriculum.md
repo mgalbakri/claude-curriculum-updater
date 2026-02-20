@@ -479,6 +479,29 @@ Source: https://www.npmjs.com/package/@anthropic-ai/claude-code/v/2.1.41
 @anthropic-ai/claude-code@2.1.42 published to...
 Source: https://www.npmjs.com/package/@anthropic-ai/claude-code/v/2.1.42
 
+
+#### Claude Code v2.1.43–2.1.49 Release Notes (Feb 13–19, 2026)
+
+Several Claude Code releases shipped this week:
+
+| Version | Date | Highlights |
+|---------|------|------------|
+| 2.1.44 | Feb 16 | Fixed auth refresh errors |
+| 2.1.45 | Feb 17 | Added **Claude Sonnet 4.6** support; `spinnerTipsOverride` setting for custom spinner tips; support for `enabledPlugins` and `extraKnownMarketplaces` from `--add-dir` directories |
+| 2.1.47 | Feb 18 | Fixed FileWriteTool to preserve trailing blank lines; fixed Windows terminal line count display bugs |
+| 2.1.49 | Feb 19 | Fixed Ctrl+C / ESC being silently ignored when background agents are running; fixed prompt suggestion cache regression; fixed `plugin enable` |
+
+> **Key takeaway:** v2.1.45 is the most significant — it adds Sonnet 4.6 model support and a new `spinnerTipsOverride` setting. Run `claude update` to get the latest.
+
+
+This is a test entry to verify the curriculum_apply_update tool works correctly after the fix. **Bold**, `code`, and | table | syntax included.
+
+
+Test content
+
+
+#### Test with **bold**, `code`, and | pipe | chars\n\n| Col A | Col B |\n|-------|-------|\n| Row 1 | Data  |\n\n> Blockquote with em-dash — and backtick `test`.
+
 ---
 
 ### WEEK 2: Git & Version Control
@@ -843,6 +866,31 @@ Document the GitHub URL in your `notes/week2.txt` file.
 **Anthropic Python SDK 0.79.0** (added 2026-02-07)
 New release of the anthropic Python package: version...
 Source: https://pypi.org/project/anthropic/0.79.0/
+
+
+#### Git Worktrees with Claude Code (v2.1.49)
+
+Claude Code v2.1.49 introduced native **git worktree** support, allowing you to run Claude in an isolated copy of your repo without affecting your working branch.
+
+- **`--worktree` (`-w`) flag:** Start Claude Code in a temporary git worktree — perfect for experimental changes, parallel tasks, or risky refactors.
+- **Subagent isolation:** Subagents can also run in their own worktrees using the `"worktree"` isolation mode, preventing file conflicts during parallel sessions.
+- **`EnterWorktree` tool:** A new built-in tool that creates and enters a git worktree mid-session.
+
+**When to use worktrees:**
+- You want to try a risky refactor without touching your current branch
+- You're running multiple Claude Code sessions on the same repo
+- You want subagents to work on separate branches simultaneously
+
+**Example:**
+```bash
+# Start Claude Code in an isolated worktree
+claude --worktree
+
+# Or use the short flag
+claude -w
+```
+
+> **Note:** Worktrees require a git repository. The worktree is temporary and cleaned up when the session ends.
 
 ---
 
@@ -1248,6 +1296,48 @@ On exit, Claude Code now shows a session resume hint so you can continue your co
 - **Opus 4.6 uses more tokens** than previous models due to deeper planning and longer autonomous runs. Monitor your usage with `/cost` during sessions.
 - Community reports suggest token consumption can spike significantly when using Opus 4.6 for design-heavy or test-heavy workflows.
 - **Tip:** Use Sonnet 4.5 or Haiku 4.5 for routine tasks, and reserve Opus 4.6 for complex architecture and multi-step reasoning where quality matters most.
+
+#### Claude Sonnet 4.6 (Released Feb 17, 2026)
+
+Anthropic released **Claude Sonnet 4.6**, a new model delivering frontier performance across coding, agentic tasks, and professional work at scale. Key points for Claude Code users:
+
+- **Claude Code support:** Added in v2.1.45. You can select Sonnet 4.6 using `/model` or by setting it in your configuration.
+- **Performance:** Optimized for coding and agent workflows — faster and more capable than Sonnet 4.5 for most tasks.
+- **Model ID:** `claude-sonnet-4-6` — use this when building applications with the Anthropic API.
+- **When to use:** Sonnet 4.6 is ideal for everyday Claude Code work where you want strong performance with lower cost than Opus. It excels at code generation, debugging, and multi-step agent tasks.
+
+> **Try it:** Run `/model` in Claude Code and switch to Sonnet 4.6. Try a coding task you've done before and compare the output quality and speed.
+
+#### Claude Opus 4.6 (February 2026)
+
+Anthropic upgraded its most capable model to **Opus 4.6**, achieving industry-leading performance across agentic coding, computer use, tool use, search, and finance benchmarks.
+
+- **Model ID:** `claude-opus-4-6` — the default model for Claude Code when available.
+- **Strengths:** Best-in-class for complex, multi-step coding tasks, large refactors, and tasks requiring deep reasoning.
+- **Claude Code integration:** Claude Code automatically uses Opus 4.6 when your plan supports it. You can verify with `/model`.
+- **When to choose Opus vs Sonnet:** Use Opus 4.6 for complex architecture decisions, large-scale refactors, and tasks requiring extensive reasoning. Use Sonnet 4.6 for faster, everyday coding tasks where speed matters more than depth.
+
+> **Exercise:** Compare Opus 4.6 and Sonnet 4.6 on the same task — ask Claude Code to explain a complex function. Note differences in depth and speed.
+
+
+#### System Prompt Changes in v2.1.48–2.1.49
+
+Recent Claude Code releases included significant system prompt updates:
+
+- **v2.1.48:** Removed 1,082 tokens from the system prompt, including the old MCP CLI instructions (replaced by native MCP integration).
+- **v2.1.49:** Added the `EnterWorktree` tool description (237 tokens) to the system prompt, enabling Claude to create git worktrees mid-session.
+
+> **Why this matters:** Claude Code's system prompt defines what tools and behaviors are available. Tracking these changes helps you understand what Claude can and can't do in each version.
+
+
+#### Opencode: Claude Subscription Support Removed
+
+**Opencode**, a third-party open-source CLI for Claude, has dropped support for Claude subscriptions (Pro/Max). This means you can no longer use your Anthropic subscription credentials with Opencode.
+
+- **Impact:** If you were using Opencode as an alternative to Claude Code, you now need an API key instead.
+- **Recommendation:** Use the official **Claude Code CLI** (`@anthropic-ai/claude-code`) which fully supports both API keys and Claude subscriptions.
+
+> **Takeaway:** Third-party tools can change their integration support at any time. The official Claude Code CLI is the most reliable way to access Claude from the terminal.
 
 ---
 
@@ -2549,6 +2639,17 @@ Document your development process in a `docs/build-log.md` — what went well, w
 
 **Exercise:** Visit the Claude Developer Platform and explore the usage dashboard. Review your API key setup and ensure your Claude Code CLI is authenticated correctly. Identify how token usage maps to the sessions you've run.
 
+#### Claude Developer Platform (Updated Feb 2026)
+
+The **Claude Developer Platform** (platform.claude.com) is where you manage your API keys, monitor usage, and configure settings for building applications with Claude.
+
+- **API key management:** Create, rotate, and revoke API keys
+- **Usage monitoring:** Track token consumption and costs across your projects
+- **Model access:** View which models are available on your plan
+- **Workspaces:** Organize projects and API keys by team or purpose
+
+> **Bookmark it:** Visit [platform.claude.com](https://platform.claude.com) and familiarize yourself with the dashboard — you'll use it throughout your projects.
+
 ---
 
 ## Phase III: Mastery (Weeks 9–12)
@@ -2868,6 +2969,18 @@ As of v2.1.32, Claude Code **automatically records and recalls memories** as it 
 
 **Exercise:** After a few sessions on a project, inspect `~/.claude/projects/` to see what Claude has remembered. Try asking Claude to "remember" a preference (e.g., "always use bun instead of npm") and verify it persists in the next session.
 
+
+#### Case Study: Collapsing 35,000 Lines into a Single Markdown File
+
+A community project demonstrated an extreme approach to agent architecture: compressing a 35,000-line AI data analyst (17 agents, 30 skills) into a single 1,398-line markdown file that regenerates itself from scratch.
+
+**Key takeaways for Claude Code users:**
+- **Markdown as architecture:** Instead of complex code, the entire agent system is defined in a structured markdown file that Claude Code can read and execute.
+- **Self-regenerating agents:** The system can regrow itself from the markdown specification, making it highly portable and version-controllable.
+- **Skills + Hooks pattern:** The 30 skills map directly to the skills and hooks concepts covered this week.
+
+> **Exercise:** Consider one of your projects. Could you describe its architecture in a single markdown file that Claude Code could use to rebuild it? Try writing a simplified version.
+
 ---
 
 ### WEEK 10: MCP Servers & Plugins
@@ -3118,6 +3231,16 @@ Set up an MCP server that requires authentication:
 **Watch:** [Why we built and donated MCP — David Soria Parra](https://www.youtube.com/watch?v=kQRu7DdTTVA)
 
 **Exercise:** After watching the video, write a short summary of why Anthropic chose to open-source MCP rather than keep it proprietary. How does this decision affect the Claude Code ecosystem?
+
+#### MCP Origins — Why Anthropic Built and Donated MCP
+
+Anthropic's Stuart Ritchie interviews MCP co-creator **David Soria Parra** about the development and open-sourcing of the Model Context Protocol:
+
+- **Why open-source:** MCP was donated as an open standard so any AI system can connect to external tools and services — not just Claude.
+- **Design goals:** Standardize how AI models interact with tools, databases, and APIs so developers build integrations once and use them everywhere.
+- **Impact on Claude Code:** MCP is the backbone of Claude Code's plugin and tool ecosystem. Understanding its design philosophy helps you build better MCP servers.
+
+> **Watch:** [Why we built and donated the Model Context Protocol](https://www.youtube.com/watch?v=kQRu7DdTTVA)
 
 ---
 
@@ -3997,3 +4120,21 @@ An emerging community pattern uses Claude's **Cowork** mode for fully autonomous
 - **Reference:** [Community discussion](https://www.reddit.com/r/ClaudeAI/comments/1r3d1vk/)
 
 This pattern complements the agent orchestration and parallel session techniques covered earlier in this week.
+
+---
+
+### Appendix J: Cowork — Claude Code for Desktop
+
+**Cowork** brings Claude Code's agentic capabilities to the Claude desktop app, making agentic workflows accessible without a terminal.
+
+**How it works:**
+1. Open the Claude desktop app (download at claude.com/download)
+2. Give Claude access to a folder on your computer
+3. Set a task and let Claude work autonomously
+4. Claude loops you in along the way for decisions and approvals
+
+**When to use Cowork vs Claude Code CLI:**
+- **Cowork:** Great for non-terminal users, quick file tasks, and when you want a visual interface
+- **Claude Code CLI:** More powerful for developers — supports hooks, MCP servers, plugins, and full terminal integration
+
+> **Source:** [Introducing Cowork](https://www.youtube.com/watch?v=kQRu7DdTTVA)
