@@ -1,0 +1,131 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/session-context.sh",
+            "timeout": 5,
+            "statusMessage": "Loading project context..."
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/protect-files.sh",
+            "timeout": 5,
+            "statusMessage": "Checking file protection..."
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/block-dangerous-commands.sh",
+            "timeout": 5,
+            "statusMessage": "Checking command safety..."
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/commit-quality.sh",
+            "timeout": 10,
+            "statusMessage": "Checking commit quality..."
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/test-reminder.sh",
+            "timeout": 10,
+            "statusMessage": "Checking test status..."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/enforce-palette.sh",
+            "timeout": 5,
+            "statusMessage": "Checking design palette..."
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/enforce-dark-first.sh",
+            "timeout": 5,
+            "statusMessage": "Checking dark mode support..."
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/enforce-imports.sh",
+            "timeout": 5,
+            "statusMessage": "Checking import patterns..."
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/enforce-tailwind4.sh",
+            "timeout": 5,
+            "statusMessage": "Checking Tailwind CSS 4 compat..."
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/check-accessibility.sh",
+            "timeout": 5,
+            "statusMessage": "Checking accessibility..."
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/validate-build.sh",
+            "timeout": 5,
+            "statusMessage": "Build validation reminder..."
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/validate-tsx-structure.sh",
+            "timeout": 5,
+            "statusMessage": "Validating TSX structure..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Review what was accomplished in this session. Check: 1) Were all requested changes made? 2) Were there any errors left unresolved? 3) If site files were modified, was 'npm run build' run? 4) If changes should be committed, were they committed and pushed? If anything is incomplete, set continue=true and explain what remains. $ARGUMENTS",
+            "timeout": 30,
+            "statusMessage": "Verifying session completeness..."
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/notify-completion.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}
