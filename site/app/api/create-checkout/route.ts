@@ -30,9 +30,9 @@ export async function POST(request: Request) {
             },
             checkout_data: {
               email: email || undefined,
-              custom: {
-                user_id: userId || "",
-              },
+              ...(userId
+                ? { custom: { user_id: userId } }
+                : {}),
             },
             product_options: {
               redirect_url: "https://agentcodeacademy.com/payment/success",
