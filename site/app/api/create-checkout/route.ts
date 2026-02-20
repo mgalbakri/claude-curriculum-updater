@@ -6,13 +6,10 @@ export async function POST(request: Request) {
 
   if (!apiKey || !variantId) {
     return NextResponse.json(
-      { error: "Payment not configured", apiKeySet: !!apiKey, variantIdSet: !!variantId },
+      { error: "Payment not configured" },
       { status: 500 }
     );
   }
-
-  // Debug: log key length and variant (remove after debugging)
-  console.log(`Checkout debug: apiKey_len=${apiKey.length} variant=${variantId} apiKey_end=${apiKey.slice(-10)}`);
 
   const { email, userId } = await request.json();
 
@@ -63,16 +60,7 @@ export async function POST(request: Request) {
       const err = await res.text();
       console.error("Lemon Squeezy checkout error:", err);
       return NextResponse.json(
-        {
-          error: "Failed to create checkout",
-          detail: err,
-          debug: {
-            apiKeyLen: apiKey.length,
-            apiKeyEnd: apiKey.slice(-10),
-            variantId,
-            storeId: process.env.LEMON_SQUEEZY_STORE_ID || "297028",
-          },
-        },
+        { error: "Failed to create checkout" },
         { status: 500 }
       );
     }
@@ -84,7 +72,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Checkout error:", error);
     return NextResponse.json(
-      { error: "Checkout exception", detail: String(error) },
+      { error: "Failed to create checkout" },
       { status: 500 }
     );
   }
