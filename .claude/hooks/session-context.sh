@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Hook: SessionStart
-# Purpose: Inject project context on session start/resume/compact
-# so Claude always knows the key rules.
+# Purpose: Inject project context on session start/resume/compact.
+# Also restores pre-compact snapshot if one exists, so Claude
+# picks up where it left off after context window fills up.
 
 cat <<'CONTEXT'
 ## Agent Code Academy — Session Context
@@ -28,4 +29,13 @@ cat <<'CONTEXT'
 
 **Standing instruction:** Do it, never ask user to do anything unless security risk.
 CONTEXT
+
+# If resuming after compaction, include the snapshot of in-progress work
+SNAPSHOT="$CLAUDE_PROJECT_DIR/.claude/.compact-snapshot"
+if [[ -f "$SNAPSHOT" ]]; then
+  echo ""
+  echo "## Restored from pre-compact snapshot:"
+  cat "$SNAPSHOT"
+fi
+
 exit 0

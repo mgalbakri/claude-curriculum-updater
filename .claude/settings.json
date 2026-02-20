@@ -80,6 +80,19 @@
         ]
       }
     ],
+    "PreCompact": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/save-before-compact.sh",
+            "timeout": 10,
+            "statusMessage": "Saving work snapshot before compaction..."
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [
