@@ -110,7 +110,7 @@ test.describe("Responsive: Week Page", () => {
     await page.reload();
     await page.waitForLoadState("domcontentloaded");
 
-    const banner = page.locator("text=Get notified when new lessons drop").first();
+    const banner = page.locator("text=Free AI Coding Cheat Sheet + lesson updates").first();
     await expect(banner).toBeVisible();
   });
 });

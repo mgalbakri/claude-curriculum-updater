@@ -76,7 +76,7 @@ test.describe("Forms: Week Page Email Banner", () => {
 
   test("email banner is visible on week page", async ({ page }) => {
     const banner = page
-      .locator("text=Get notified when new lessons drop")
+      .locator("text=Free AI Coding Cheat Sheet + lesson updates")
       .first();
     await expect(banner).toBeVisible();
 
