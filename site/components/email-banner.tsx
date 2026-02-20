@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect, type FormEvent } from "react";
-
-const FORMSPREE_ID = "mgolkeaa";
-const DISMISSED_KEY = "ccm-email-banner-dismissed";
-const SUBSCRIBED_KEY = "ccm-email-subscribed";
+import {
+  FORMSPREE_ID,
+  LS_EMAIL_DISMISSED as DISMISSED_KEY,
+  LS_EMAIL_SUBSCRIBED as SUBSCRIBED_KEY,
+  CHEAT_SHEET_PATH,
+} from "@/lib/constants";
 
 export function EmailBanner() {
   const [visible, setVisible] = useState(false);
@@ -64,17 +66,26 @@ export function EmailBanner() {
       </button>
 
       {submitted ? (
-        <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400 text-center">
-          You&apos;re subscribed! We&apos;ll keep you updated.
-        </p>
+        <div className="text-center">
+          <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400 mb-2">
+            You&apos;re subscribed! We&apos;ll keep you updated.
+          </p>
+          <a
+            href={CHEAT_SHEET_PATH}
+            download
+            className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline"
+          >
+            &#8595; Download AI Coding Cheat Sheet (PDF)
+          </a>
+        </div>
       ) : (
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="flex-1 min-w-0 pr-6 sm:pr-0">
             <p className="text-sm font-semibold text-gray-900 dark:text-white">
-              Get notified when new lessons drop
+              Free AI Coding Cheat Sheet + lesson updates
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-              Curriculum updates, tips, and Claude Code news. No spam.
+              Subscribe for the cheat sheet PDF, curriculum updates, and tips. No spam.
             </p>
           </div>
           <form

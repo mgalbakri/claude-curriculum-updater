@@ -3,6 +3,10 @@ import Link from "next/link";
 import { getAllWeeks, getWeek } from "@/lib/parse-curriculum";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
 import { EmailBanner } from "@/components/email-banner";
+import { EmailGate } from "@/components/email-gate";
+import { WeekCompleteButton } from "@/components/week-complete-button";
+import { PremiumGate } from "@/components/premium-gate";
+import { ContextualToolCta } from "@/components/contextual-tool-cta";
 
 interface WeekPageProps {
   params: Promise<{ number: string }>;
@@ -20,7 +24,7 @@ export async function generateMetadata({ params }: WeekPageProps) {
 
   const title = `Week ${week.number}: ${week.title}`;
   const description =
-    week.objective || week.subtitle || `Week ${week.number} of the free 12-week AI coding course.`;
+    week.objective || week.subtitle || `Week ${week.number} of the 12-week AI coding course at Agent Code Academy.`;
 
   return {
     title,
@@ -62,6 +66,7 @@ export default async function WeekPage({ params }: WeekPageProps) {
   return (
     <article className="py-8 lg:py-12">
       <EmailBanner />
+      <EmailGate weekNumber={weekNum} />
 
       {/* Breadcrumb & Phase badge */}
       <div className="flex items-center gap-2 mb-6 text-sm">
@@ -141,45 +146,54 @@ export default async function WeekPage({ params }: WeekPageProps) {
         </section>
       )}
 
-      {/* Activities */}
-      {week.activities.length > 0 && (
-        <section className="mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-            Activities
-          </h2>
-          <ul className="space-y-1.5">
-            {week.activities.map((activity, i) => (
-              <li
-                key={i}
-                className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300"
-              >
-                <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400 dark:bg-emerald-600 flex-shrink-0" />
-                {activity}
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+      {/* Premium-gated content (activities, skills, lessons) */}
+      <PremiumGate weekNumber={weekNum}>
+        {/* Activities */}
+        {week.activities.length > 0 && (
+          <section className="mb-8">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+              Activities
+            </h2>
+            <ul className="space-y-1.5">
+              {week.activities.map((activity, i) => (
+                <li
+                  key={i}
+                  className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300"
+                >
+                  <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400 dark:bg-emerald-600 flex-shrink-0" />
+                  {activity}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
-      {/* Skills */}
-      {week.skills && (
-        <section className="mb-10">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-            Skills You&apos;ll Gain
-          </h2>
-          <p className="text-sm text-gray-700 dark:text-gray-300">
-            {week.skills}
-          </p>
-        </section>
-      )}
+        {/* Skills */}
+        {week.skills && (
+          <section className="mb-10">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+              Skills You&apos;ll Gain
+            </h2>
+            <p className="text-sm text-gray-700 dark:text-gray-300">
+              {week.skills}
+            </p>
+          </section>
+        )}
 
-      {/* Full Content (markdown) */}
-      {week.content && (
-        <section className="mb-12">
-          <hr className="border-gray-200 dark:border-gray-800 mb-8" />
-          <MarkdownRenderer content={week.content} />
-        </section>
-      )}
+        {/* Full Content (markdown) */}
+        {week.content && (
+          <section className="mb-12">
+            <hr className="border-gray-200 dark:border-gray-800 mb-8" />
+            <MarkdownRenderer content={week.content} />
+          </section>
+        )}
+
+        {/* Mark Complete */}
+        <WeekCompleteButton weekNumber={weekNum} />
+      </PremiumGate>
+
+      {/* Tool Recommendations */}
+      <ContextualToolCta weekNumber={weekNum} />
 
       {/* Navigation */}
       <nav className="flex items-center justify-between pt-8 border-t border-gray-200 dark:border-gray-800">

@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-
-const FORMSPREE_ID = "mgolkeaa";
+import { FORMSPREE_ID, CHEAT_SHEET_PATH } from "@/lib/constants";
 
 export function EmailSignup() {
   const [submitted, setSubmitted] = useState(false);
@@ -37,9 +36,16 @@ export function EmailSignup() {
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
           You&apos;re on the list!
         </h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
           We&apos;ll send you updates on new lessons, tips, and Claude Code news.
         </p>
+        <a
+          href={CHEAT_SHEET_PATH}
+          download
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition-colors"
+        >
+          &#8595; Download AI Coding Cheat Sheet (PDF)
+        </a>
       </section>
     );
   }
@@ -47,11 +53,11 @@ export function EmailSignup() {
   return (
     <section className="my-16 p-8 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-center">
       <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-        Stay Updated
+        Stay Updated + Free Cheat Sheet
       </h3>
       <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
-        Get notified about new lessons, curriculum updates, and Claude Code tips.
-        No spam, ever.
+        Subscribe and get the free <strong>AI Coding Cheat Sheet</strong> PDF — plus
+        curriculum updates and Claude Code tips. No spam, ever.
       </p>
       <form
         onSubmit={handleSubmit}

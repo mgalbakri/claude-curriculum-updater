@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: AppendixPageProps) {
   if (!appendix) return { title: "Appendix Not Found" };
 
   const title = `Appendix ${appendix.letter}: ${appendix.title}`;
-  const description = `${appendix.title} — Reference material from the free 12-week AI coding course.`;
+  const description = `${appendix.title} — Reference material from the 12-week AI coding course at Agent Code Academy.`;
 
   return {
     title,

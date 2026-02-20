@@ -3,6 +3,8 @@ import { parseCurriculum } from "@/lib/parse-curriculum";
 import { WeekCard } from "@/components/week-card";
 import { EmailSignup } from "@/components/email-signup";
 import { InlineEmailCta } from "@/components/inline-email-cta";
+import { ProPromoBanner } from "@/components/pro-promo-banner";
+import { affiliateTools } from "@/lib/affiliate-tools";
 
 const phaseColors: Record<
   number,
@@ -30,7 +32,7 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="text-center mb-16">
         <div className="inline-block mb-4 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
-          100% Free · Self-Paced · Always Up-to-Date
+          Start Free · Self-Paced · Always Up-to-Date
         </div>
         <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-gray-900 dark:text-white mb-4">
           Agent Code Academy
@@ -131,6 +133,9 @@ export default function HomePage() {
         })}
       </section>
 
+      {/* Pro Promo Banner */}
+      <ProPromoBanner />
+
       {/* Appendices */}
       {curriculum.appendices.length > 0 && (
         <section className="mt-16">
@@ -168,55 +173,12 @@ export default function HomePage() {
           Essential tools for getting the most out of your Claude Code journey.
         </p>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {[
-            {
-              name: "Claude Pro / Max",
-              description:
-                "The AI assistant powering Claude Code. Pro or Max subscription recommended.",
-              href: "https://www.anthropic.com/claude",
-              category: "AI",
-            },
-            {
-              name: "Anthropic API",
-              description:
-                "Build custom integrations and extend Claude Code with the API.",
-              href: "https://console.anthropic.com/",
-              category: "AI",
-            },
-            {
-              name: "Cursor IDE",
-              description:
-                "AI-native code editor with deep Claude Code integration.",
-              href: "https://www.cursor.com/",
-              category: "Editor",
-            },
-            {
-              name: "VS Code",
-              description:
-                "Industry-standard editor. Use with the Claude Code CLI extension.",
-              href: "https://code.visualstudio.com/",
-              category: "Editor",
-            },
-            {
-              name: "GitHub",
-              description:
-                "Host your projects and collaborate. Essential for version control.",
-              href: "https://github.com/",
-              category: "Platform",
-            },
-            {
-              name: "Vercel",
-              description:
-                "Deploy your projects instantly. Works perfectly with Next.js.",
-              href: "https://vercel.com/",
-              category: "Platform",
-            },
-          ].map((tool) => (
+          {affiliateTools.map((tool) => (
             <a
               key={tool.name}
               href={tool.href}
               target="_blank"
-              rel="noopener noreferrer"
+              rel="noopener noreferrer sponsored"
               className="block p-4 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 hover:shadow-md transition-all bg-white dark:bg-gray-900 group"
             >
               <span className="text-xs text-gray-400 dark:text-gray-500 font-mono uppercase tracking-wider">
@@ -234,6 +196,9 @@ export default function HomePage() {
             </a>
           ))}
         </div>
+        <p className="text-[10px] text-gray-400 dark:text-gray-600 mt-3">
+          Some links may be affiliate links. We only recommend tools we genuinely use.
+        </p>
       </section>
 
       {/* Support This Project */}
@@ -243,8 +208,8 @@ export default function HomePage() {
           Support This Project
         </h2>
         <p className="text-sm text-gray-600 dark:text-gray-400 max-w-md mx-auto mb-5">
-          This course is free and always will be. If it&apos;s helped you,
-          consider buying me a coffee to keep it going.
+          Weeks 1–4 are free to everyone. If this course has helped you,
+          consider buying me a coffee to keep it growing.
         </p>
         <a
           href="https://buymeacoffee.com/curriculumbuilder"

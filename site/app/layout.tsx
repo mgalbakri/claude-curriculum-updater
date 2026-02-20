@@ -6,6 +6,10 @@ import { parseCurriculum } from "@/lib/parse-curriculum";
 import { Sidebar } from "@/components/sidebar";
 import { MobileNav } from "@/components/mobile-nav";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { AuthButton } from "@/components/auth-button";
+import { ExitIntentPopup } from "@/components/exit-intent-popup";
+import { AuthProvider } from "@/lib/auth-context";
+import { ProgressProvider } from "@/lib/progress-context";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -23,18 +27,18 @@ const BASE_URL = "https://agentcodeacademy.com";
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
   title: {
-    default: "Agent Code Academy — Free 12-Week AI Coding Course",
+    default: "Agent Code Academy — 12-Week AI Coding Course",
     template: "%s — Agent Code Academy",
   },
   description:
-    "Go from zero coding knowledge to AI coding expert in 12 weeks. Learn to build real applications with Claude Code. Free, self-paced, always up-to-date.",
+    "Go from zero coding knowledge to AI coding expert in 12 weeks. Learn to build real applications with Claude Code. Start free, go Pro when you're ready.",
   keywords: [
     "Claude Code",
     "AI coding course",
     "learn to code with AI",
     "prompt engineering",
     "Claude Code tutorial",
-    "free coding course",
+    "AI coding course",
     "AI programming",
     "MCP servers",
     "vibe coding",
@@ -43,9 +47,9 @@ export const metadata: Metadata = {
   authors: [{ name: "Agent Code Academy" }],
   creator: "Agent Code Academy",
   openGraph: {
-    title: "Agent Code Academy — Free 12-Week AI Coding Course",
+    title: "Agent Code Academy — 12-Week AI Coding Course",
     description:
-      "Go from zero coding knowledge to AI coding expert in 12 weeks. Learn to build real applications with Claude Code.",
+      "Go from zero coding knowledge to AI coding expert in 12 weeks. Learn to build real applications with Claude Code. Start free, go Pro when you're ready.",
     url: BASE_URL,
     siteName: "Agent Code Academy",
     type: "website",
@@ -53,9 +57,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Agent Code Academy — Free 12-Week AI Coding Course",
+    title: "Agent Code Academy — 12-Week AI Coding Course",
     description:
-      "Go from zero coding knowledge to AI coding expert in 12 weeks. Free, self-paced, always up-to-date.",
+      "Go from zero coding knowledge to AI coding expert in 12 weeks. Start free, go Pro when you're ready. Self-paced, always up-to-date.",
   },
   robots: {
     index: true,
@@ -100,7 +104,7 @@ export default function RootLayout({
                 url: BASE_URL,
               },
               url: BASE_URL,
-              isAccessibleForFree: true,
+              isAccessibleForFree: false,
               hasCourseInstance: {
                 "@type": "CourseInstance",
                 courseMode: "online",
@@ -123,32 +127,41 @@ export default function RootLayout({
           }}
         />
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <div className="flex min-h-screen">
-            <Sidebar
-              phases={curriculum.phases}
-              appendices={curriculum.appendices}
-            />
-            <div className="flex-1 min-w-0">
-              {/* Mobile header */}
-              <header className="lg:hidden sticky top-0 z-40 flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-950/80 backdrop-blur-sm">
-                <MobileNav
+          <AuthProvider>
+            <ProgressProvider>
+              <div className="flex min-h-screen">
+                <Sidebar
                   phases={curriculum.phases}
                   appendices={curriculum.appendices}
                 />
-                <span className="text-sm font-semibold">
-                  Agent Code Academy
-                </span>
-                <ThemeToggle />
-              </header>
-              {/* Desktop theme toggle */}
-              <div className="hidden lg:flex justify-end p-3">
-                <ThemeToggle />
+                <div className="flex-1 min-w-0">
+                  {/* Mobile header */}
+                  <header className="lg:hidden sticky top-0 z-40 flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-950/80 backdrop-blur-sm">
+                    <MobileNav
+                      phases={curriculum.phases}
+                      appendices={curriculum.appendices}
+                    />
+                    <span className="text-sm font-semibold">
+                      Agent Code Academy
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <ThemeToggle />
+                      <AuthButton />
+                    </div>
+                  </header>
+                  {/* Desktop header */}
+                  <div className="hidden lg:flex justify-end items-center gap-2 p-3">
+                    <ThemeToggle />
+                    <AuthButton />
+                  </div>
+                  <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+                    {children}
+                  </main>
+                </div>
               </div>
-              <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-                {children}
-              </main>
-            </div>
-          </div>
+              <ExitIntentPopup />
+            </ProgressProvider>
+          </AuthProvider>
         </ThemeProvider>
         <Analytics />
       </body>

@@ -4,6 +4,10 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { Phase, Appendix } from "@/lib/types";
+import { useProgress } from "@/lib/progress-context";
+import { ProgressIndicator } from "@/components/progress-indicator";
+import { PremiumBadge } from "@/components/premium-badge";
+import { UpgradeCta } from "@/components/upgrade-cta";
 
 interface MobileNavProps {
   phases: Phase[];
@@ -13,6 +17,7 @@ interface MobileNavProps {
 export function MobileNav({ phases, appendices }: MobileNavProps) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const { completedWeeks } = useProgress();
 
   return (
     <div className="lg:hidden">
@@ -42,18 +47,23 @@ export function MobileNav({ phases, appendices }: MobileNavProps) {
               {phase.weeks.map((week) => {
                 const href = `/week/${week.number}`;
                 const isActive = pathname === href;
+                const isComplete = completedWeeks.includes(week.number);
                 return (
                   <Link
                     key={week.number}
                     href={href}
                     onClick={() => setOpen(false)}
-                    className={`block px-3 py-2 rounded text-sm ${
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded text-sm ${
                       isActive
                         ? "bg-gray-100 dark:bg-gray-800 font-medium"
                         : "text-gray-600 dark:text-gray-400"
                     }`}
                   >
-                    {week.number}. {week.title}
+                    <ProgressIndicator completed={isComplete} />
+                    <span className="flex-1">
+                      {week.number}. {week.title}
+                    </span>
+                    <PremiumBadge weekNumber={week.number} />
                   </Link>
                 );
               })}
@@ -76,6 +86,9 @@ export function MobileNav({ phases, appendices }: MobileNavProps) {
               ))}
             </div>
           )}
+
+          {/* Upgrade CTA */}
+          <UpgradeCta />
         </div>
       )}
     </div>

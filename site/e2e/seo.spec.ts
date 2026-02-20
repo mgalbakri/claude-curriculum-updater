@@ -46,7 +46,7 @@ test.describe("SEO: Homepage", () => {
     const data = JSON.parse(content!);
     expect(data["@type"]).toBe("Course");
     expect(data.name).toContain("Agent Code Academy");
-    expect(data.isAccessibleForFree).toBe(true);
+    expect(data.isAccessibleForFree).toBe(false);
   });
 });
 

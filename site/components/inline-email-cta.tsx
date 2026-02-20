@@ -1,9 +1,7 @@
 "use client";
 
 import { useState, useEffect, type FormEvent } from "react";
-
-const FORMSPREE_ID = "mgolkeaa";
-const SUBSCRIBED_KEY = "ccm-email-subscribed";
+import { FORMSPREE_ID, LS_EMAIL_SUBSCRIBED as SUBSCRIBED_KEY } from "@/lib/constants";
 
 export function InlineEmailCta({ message }: { message: string }) {
   const [subscribed, setSubscribed] = useState(false);
