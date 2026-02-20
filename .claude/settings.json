@@ -98,6 +98,12 @@
           },
           {
             "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/validate-curriculum-content.sh",
+            "timeout": 5,
+            "statusMessage": "Checking for orphaned curriculum content..."
+          },
+          {
+            "type": "command",
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/check-performance.sh",
             "timeout": 5,
             "statusMessage": "Checking performance impact..."

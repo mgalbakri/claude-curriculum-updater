@@ -63,6 +63,14 @@ PHASES=$(grep -c '^# Phase' curriculum.md)
 - ✅ PASS if 12 weeks, 3 phases
 - ❌ FAIL if counts don't match
 
+### 5b. Curriculum Content
+Check for orphaned content between section boundaries:
+```bash
+echo '{"tool_input":{"file_path":"'$(pwd)'/curriculum.md"}}' | .claude/hooks/validate-curriculum-content.sh
+```
+- ✅ PASS if no orphaned lines found
+- ⚠️ WARN if orphaned content detected (leftover debug/test text)
+
 ### 6. SEO Audit
 Read `site/app/layout.tsx` and check:
 - metadata.title ✅
