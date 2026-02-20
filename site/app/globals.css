@@ -56,18 +56,3 @@ nav::-webkit-scrollbar-thumb {
 .dark nav::-webkit-scrollbar-thumb {
   background: #374151;
 }
-
-/* Line clamp utility */
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.line-clamp-3 {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}

@@ -68,10 +68,10 @@ export const affiliateTools: AffiliateTool[] = [
     relevantWeeks: [5, 6, 7, 8, 9],
   },
   {
-    name: "Stripe",
+    name: "Lemon Squeezy",
     description:
-      "Payment infrastructure for the internet. Learn to integrate payments with AI-assisted development.",
-    href: "https://stripe.com/",
+      "Simple payment infrastructure for digital products. Handles checkout, taxes, and subscriptions.",
+    href: "https://lemonsqueezy.com/",
     category: "Payments",
     relevantWeeks: [7, 8, 11, 12],
   },

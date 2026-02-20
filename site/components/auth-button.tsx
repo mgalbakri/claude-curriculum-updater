@@ -45,7 +45,7 @@ export function AuthButton() {
       <div className="relative" ref={dropdownRef}>
         <button
           onClick={() => setShowDropdown(!showDropdown)}
-          className="flex items-center gap-2 rounded-full focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          className="flex items-center gap-2 rounded-full focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-500"
           aria-label="User menu"
         >
           {avatarUrl ? (

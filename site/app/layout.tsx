@@ -130,7 +130,7 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <AuthProvider>
             <ProgressProvider>
-              <div className="flex min-h-screen">
+              <div className="flex min-h-screen overflow-x-hidden">
                 <Sidebar
                   phases={curriculum.phases}
                   appendices={curriculum.appendices}

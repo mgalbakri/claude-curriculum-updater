@@ -11,12 +11,9 @@ export function ProPromoBanner() {
   if (isLoading || isPremium) return null;
 
   return (
-    <section className="my-12 p-6 sm:p-8 rounded-2xl bg-gradient-to-br from-emerald-50 via-white to-blue-50 dark:from-emerald-950/20 dark:via-gray-900 dark:to-blue-950/20 border border-emerald-200 dark:border-emerald-800/50">
+    <section className="my-12 p-6 sm:p-8 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
       <div className="flex flex-col sm:flex-row items-center gap-6">
         <div className="flex-1 text-center sm:text-left">
-          <div className="inline-block mb-2 px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider">
-            Pro
-          </div>
           <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
             Unlock the Full Course
           </h3>
@@ -35,9 +32,9 @@ export function ProPromoBanner() {
           </div>
           <Link
             href="/pricing"
-            className="inline-flex items-center px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition-colors shadow-lg shadow-emerald-600/20"
+            className="inline-flex items-center px-6 py-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition-colors shadow-sm"
           >
-            Get Pro Access →
+            Get Pro Access &rarr;
           </Link>
           <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-2">
             30-day money-back guarantee

@@ -10,15 +10,15 @@ export function UpgradeCta() {
   if (isLoading || isPremium) return null;
 
   return (
-    <div className="mt-4 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800">
+    <div className="mt-4 p-3 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
       <Link
         href="/pricing"
         className="block text-center group"
       >
-        <p className="text-xs font-bold text-emerald-700 dark:text-emerald-400 group-hover:text-emerald-800 dark:group-hover:text-emerald-300 transition-colors">
+        <p className="text-xs font-bold text-gray-900 dark:text-gray-100 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
           Upgrade to Pro — {PRICE_DISPLAY}
         </p>
-        <p className="text-[10px] text-emerald-600/70 dark:text-emerald-400/60 mt-0.5">
+        <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
           Unlock all 12 weeks + certificate
         </p>
       </Link>

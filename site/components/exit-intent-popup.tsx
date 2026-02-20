@@ -70,7 +70,7 @@ export function ExitIntentPopup() {
       />
 
       {/* Modal */}
-      <div className="relative w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 p-8 text-center">
+      <div className="relative w-full max-w-md bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-800 p-8 text-center">
         {/* Close button */}
         <button
           onClick={dismiss}
@@ -94,16 +94,15 @@ export function ExitIntentPopup() {
             <a
               href={CHEAT_SHEET_PATH}
               download
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition-colors"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-semibold text-sm transition-colors"
             >
               &#8595; Download Cheat Sheet (PDF)
             </a>
           </>
         ) : (
           <>
-            <div className="text-3xl mb-3">&#128075;</div>
             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-              Wait! Before you go...
+              Free AI Coding Cheat Sheet
             </h3>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 max-w-sm mx-auto">
               Get the free <strong>AI Coding Cheat Sheet</strong> — a quick-reference guide for working with AI coding agents. Plus curriculum updates and tips.
@@ -118,12 +117,12 @@ export function ExitIntentPopup() {
                 name="email"
                 required
                 placeholder="you@example.com"
-                className="w-full sm:flex-1 px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400 focus:border-transparent text-sm"
+                className="w-full sm:flex-1 px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-500 focus:border-transparent text-sm"
               />
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full sm:w-auto px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full sm:w-auto px-6 py-3 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-semibold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submitting ? "..." : "Get the Cheat Sheet"}
               </button>

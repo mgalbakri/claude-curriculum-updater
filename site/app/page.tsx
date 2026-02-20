@@ -2,7 +2,6 @@ import Link from "next/link";
 import { parseCurriculum } from "@/lib/parse-curriculum";
 import { WeekCard } from "@/components/week-card";
 import { EmailSignup } from "@/components/email-signup";
-import { InlineEmailCta } from "@/components/inline-email-cta";
 import { ProPromoBanner } from "@/components/pro-promo-banner";
 import { affiliateTools } from "@/lib/affiliate-tools";
 
@@ -30,10 +29,7 @@ export default function HomePage() {
   return (
     <div className="py-8 lg:py-16">
       {/* Hero Section */}
-      <section className="text-center mb-16">
-        <div className="inline-block mb-4 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
-          Start Free · Self-Paced · Always Up-to-Date
-        </div>
+      <section className="text-center mb-20">
         <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-gray-900 dark:text-white mb-4">
           Agent Code Academy
         </h1>
@@ -57,37 +53,6 @@ export default function HomePage() {
             View Curriculum
           </Link>
         </div>
-      </section>
-
-      {/* Stats */}
-      <section className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-16">
-        {[
-          { label: "Weeks", value: "12" },
-          { label: "Phases", value: "3" },
-          {
-            label: "Topics",
-            value: String(
-              curriculum.phases.reduce(
-                (acc, p) =>
-                  acc + p.weeks.reduce((a, w) => a + w.topics.length, 0),
-                0
-              )
-            ),
-          },
-          { label: "Appendices", value: String(curriculum.appendices.length) },
-        ].map((stat) => (
-          <div
-            key={stat.label}
-            className="text-center p-4 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800"
-          >
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">
-              {stat.value}
-            </div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">
-              {stat.label}
-            </div>
-          </div>
-        ))}
       </section>
 
       {/* Phases & Weeks */}
@@ -122,12 +87,6 @@ export default function HomePage() {
                   ))}
                 </div>
               </div>
-              {phase.number === 1 && (
-                <InlineEmailCta message="Enjoying the foundations? Get updates as new content drops." />
-              )}
-              {phase.number === 2 && (
-                <InlineEmailCta message="Ready for advanced topics? Subscribe for tips and updates." />
-              )}
             </div>
           );
         })}
@@ -138,23 +97,26 @@ export default function HomePage() {
 
       {/* Appendices */}
       {curriculum.appendices.length > 0 && (
-        <section className="mt-16">
+        <section className="mt-20">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
             Reference Appendices
           </h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="divide-y divide-gray-200 dark:divide-gray-800 border-t border-b border-gray-200 dark:border-gray-800">
             {curriculum.appendices.map((appendix) => (
               <Link
                 key={appendix.letter}
                 href={`/appendix/${appendix.letter.toLowerCase()}`}
-                className="block p-4 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 hover:shadow-md transition-all bg-white dark:bg-gray-900"
+                className="flex items-center gap-3 py-3 px-2 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors group"
               >
-                <span className="text-xs text-gray-400 dark:text-gray-500 font-mono">
-                  Appendix {appendix.letter}
+                <span className="text-xs text-gray-400 dark:text-gray-500 font-mono w-8 flex-shrink-0">
+                  {appendix.letter}
                 </span>
-                <h3 className="font-semibold text-gray-900 dark:text-gray-100 mt-1">
+                <span className="font-medium text-gray-900 dark:text-gray-100 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
                   {appendix.title}
-                </h3>
+                </span>
+                <span className="ml-auto text-gray-300 dark:text-gray-700 group-hover:text-gray-400 dark:group-hover:text-gray-500 transition-colors text-sm">
+                  &rarr;
+                </span>
               </Link>
             ))}
           </div>
@@ -165,34 +127,34 @@ export default function HomePage() {
       <EmailSignup />
 
       {/* Recommended Tools */}
-      <section className="mt-16">
+      <section className="mt-12">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
           Recommended Tools
         </h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
           Essential tools for getting the most out of your Claude Code journey.
         </p>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="divide-y divide-gray-200 dark:divide-gray-800 border-t border-b border-gray-200 dark:border-gray-800">
           {affiliateTools.map((tool) => (
             <a
               key={tool.name}
               href={tool.href}
               target="_blank"
               rel="noopener noreferrer sponsored"
-              className="block p-4 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 hover:shadow-md transition-all bg-white dark:bg-gray-900 group"
+              className="flex items-center gap-4 py-3 px-2 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors group"
             >
-              <span className="text-xs text-gray-400 dark:text-gray-500 font-mono uppercase tracking-wider">
+              <span className="text-[10px] font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500 w-16 flex-shrink-0">
                 {tool.category}
               </span>
-              <h3 className="font-semibold text-gray-900 dark:text-gray-100 mt-1 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+              <span className="font-medium text-gray-900 dark:text-gray-100 flex-shrink-0">
                 {tool.name}
-                <span className="inline-block ml-1 text-gray-400 dark:text-gray-600 group-hover:translate-x-0.5 transition-transform">
-                  &rarr;
-                </span>
-              </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              </span>
+              <span className="text-sm text-gray-500 dark:text-gray-400 truncate hidden sm:block">
                 {tool.description}
-              </p>
+              </span>
+              <span className="ml-auto text-gray-300 dark:text-gray-700 group-hover:text-gray-400 dark:group-hover:text-gray-500 transition-colors text-sm flex-shrink-0">
+                &rarr;
+              </span>
             </a>
           ))}
         </div>
@@ -202,9 +164,8 @@ export default function HomePage() {
       </section>
 
       {/* Support This Project */}
-      <section className="mt-16 p-6 sm:p-8 rounded-2xl bg-amber-50 dark:bg-amber-950/10 border border-amber-200 dark:border-amber-900/30 text-center">
-        <p className="text-2xl mb-3">&#9749;</p>
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+      <section className="mt-24 p-6 sm:p-8 rounded-xl border border-gray-200 dark:border-gray-800 text-center">
+        <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
           Support This Project
         </h2>
         <p className="text-sm text-gray-600 dark:text-gray-400 max-w-md mx-auto mb-5">
@@ -215,14 +176,14 @@ export default function HomePage() {
           href="https://buymeacoffee.com/curriculumbuilder"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold text-sm transition-colors shadow-sm"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-semibold text-sm hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
         >
-          &#9749; Buy Me a Coffee
+          Buy Me a Coffee
         </a>
       </section>
 
       {/* Footer */}
-      <footer className="mt-20 pt-8 border-t border-gray-200 dark:border-gray-800 text-center text-sm text-gray-500 dark:text-gray-400">
+      <footer className="mt-16 pt-8 border-t border-gray-200 dark:border-gray-800 text-center text-sm text-gray-500 dark:text-gray-400">
         <p>
           Built with Claude Code · Content auto-updated via MCP
         </p>

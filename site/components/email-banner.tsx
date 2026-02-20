@@ -54,7 +54,7 @@ export function EmailBanner() {
   if (!visible) return null;
 
   return (
-    <div className="mb-8 p-4 sm:p-5 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 relative">
+    <div className="mb-8 p-4 sm:p-5 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 relative">
       <button
         onClick={dismiss}
         className="absolute top-3 right-3 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
@@ -67,13 +67,13 @@ export function EmailBanner() {
 
       {submitted ? (
         <div className="text-center">
-          <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400 mb-2">
+          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             You&apos;re subscribed! We&apos;ll keep you updated.
           </p>
           <a
             href={CHEAT_SHEET_PATH}
             download
-            className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline"
+            className="inline-flex items-center gap-1 text-xs font-semibold text-gray-600 dark:text-gray-400 hover:underline"
           >
             &#8595; Download AI Coding Cheat Sheet (PDF)
           </a>
@@ -97,7 +97,7 @@ export function EmailBanner() {
               name="email"
               required
               placeholder="you@example.com"
-              className="w-full sm:w-52 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400 focus:border-transparent text-sm"
+              className="w-full sm:w-52 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-500 focus:border-transparent text-sm"
             />
             <button
               type="submit"

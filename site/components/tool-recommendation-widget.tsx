@@ -18,7 +18,7 @@ export function ToolRecommendationWidget() {
             href={tool.href}
             target="_blank"
             rel="noopener noreferrer sponsored"
-            className="block text-xs text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+            className="block text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
           >
             <span className="font-medium">{tool.name}</span>
             <span className="text-gray-400 dark:text-gray-600 ml-1">
