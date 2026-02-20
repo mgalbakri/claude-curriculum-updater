@@ -493,15 +493,6 @@ Several Claude Code releases shipped this week:
 
 > **Key takeaway:** v2.1.45 is the most significant — it adds Sonnet 4.6 model support and a new `spinnerTipsOverride` setting. Run `claude update` to get the latest.
 
-
-This is a test entry to verify the curriculum_apply_update tool works correctly after the fix. **Bold**, `code`, and | table | syntax included.
-
-
-Test content
-
-
-#### Test with **bold**, `code`, and | pipe | chars\n\n| Col A | Col B |\n|-------|-------|\n| Row 1 | Data  |\n\n> Blockquote with em-dash — and backtick `test`.
-
 ---
 
 ### WEEK 2: Git & Version Control
