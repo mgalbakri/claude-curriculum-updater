@@ -12,7 +12,7 @@ export function ContextualToolCta({ weekNumber }: ContextualToolCtaProps) {
   if (tools.length === 0) return null;
 
   return (
-    <aside className="my-8 p-5 rounded-xl bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50">
+    <aside className="my-8 p-5 rounded-xl bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 overflow-hidden">
       <h4 className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-3">
         Recommended for this week
       </h4>
@@ -23,7 +23,7 @@ export function ContextualToolCta({ weekNumber }: ContextualToolCtaProps) {
             href={tool.href}
             target="_blank"
             rel="noopener noreferrer sponsored"
-            className="flex-1 flex items-center gap-3 p-3 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-indigo-400 dark:hover:border-indigo-500/50 hover:shadow-md transition-all group"
+            className="flex-1 min-w-0 flex items-center gap-3 p-3 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-indigo-400 dark:hover:border-indigo-500/50 hover:shadow-md transition-all group"
           >
             <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-indigo-500/10 dark:bg-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400 text-sm font-bold ring-1 ring-indigo-200 dark:ring-indigo-500/30">
               {tool.category.charAt(0)}
