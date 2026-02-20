@@ -63,7 +63,16 @@ export async function POST(request: Request) {
       const err = await res.text();
       console.error("Lemon Squeezy checkout error:", err);
       return NextResponse.json(
-        { error: "Failed to create checkout", detail: err },
+        {
+          error: "Failed to create checkout",
+          detail: err,
+          debug: {
+            apiKeyLen: apiKey.length,
+            apiKeyEnd: apiKey.slice(-10),
+            variantId,
+            storeId: process.env.LEMON_SQUEEZY_STORE_ID || "297028",
+          },
+        },
         { status: 500 }
       );
     }
