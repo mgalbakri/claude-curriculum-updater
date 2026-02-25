@@ -7,8 +7,13 @@ function getToggle(page: import("@playwright/test").Page) {
 
 test.describe("Dark Mode: Toggle", () => {
   test.beforeEach(async ({ page }) => {
+    // Force light color scheme so the toggle tests always start from light mode,
+    // regardless of which Playwright project (desktop vs dark-mode) runs them.
+    await page.emulateMedia({ colorScheme: "light" });
     await page.goto("/");
     await page.waitForLoadState("domcontentloaded");
+    // Ensure we start in light mode
+    await expect(page.locator("html")).toHaveClass(/light/);
   });
 
   test("clicking toggle activates dark mode class", async ({ page }) => {
@@ -66,6 +71,8 @@ test.describe("Dark Mode: System Preference", () => {
 
 test.describe("Dark Mode: Week Page", () => {
   test("dark mode works on content pages", async ({ page }) => {
+    // Force light so toggling goes to dark
+    await page.emulateMedia({ colorScheme: "light" });
     await page.goto("/week/1");
     await page.waitForLoadState("domcontentloaded");
 

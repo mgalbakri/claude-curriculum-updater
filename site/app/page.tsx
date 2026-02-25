@@ -2,6 +2,7 @@ import Link from "next/link";
 import { parseCurriculum } from "@/lib/parse-curriculum";
 import { WeekCard } from "@/components/week-card";
 import { EmailSignup } from "@/components/email-signup";
+import { InlineEmailCta } from "@/components/inline-email-cta";
 import { ProPromoBanner } from "@/components/pro-promo-banner";
 import { affiliateTools } from "@/lib/affiliate-tools";
 
@@ -55,6 +56,28 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Stats */}
+      <section className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-20">
+        {[
+          { value: curriculum.phases.reduce((sum, p) => sum + p.weeks.length, 0), label: "Weeks" },
+          { value: curriculum.phases.length, label: "Phases" },
+          { value: curriculum.phases.reduce((sum, p) => sum + p.weeks.reduce((ws, w) => ws + w.topics.length, 0), 0), label: "Topics" },
+          { value: curriculum.appendices.length, label: "Appendices" },
+        ].map((stat) => (
+          <div
+            key={stat.label}
+            className="text-center p-4 rounded-xl border border-slate-200 dark:border-slate-800/50"
+          >
+            <p className="text-3xl font-bold text-slate-900 dark:text-white">
+              {stat.value}
+            </p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              {stat.label}
+            </p>
+          </div>
+        ))}
+      </section>
+
       {/* Phases & Weeks */}
       <section id="curriculum" className="scroll-mt-8">
         <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-8">
@@ -87,6 +110,12 @@ export default function HomePage() {
                   ))}
                 </div>
               </div>
+              {phase.number === 1 && (
+                <InlineEmailCta message="Enjoying the foundations? Get notified when new lessons drop." />
+              )}
+              {phase.number === 2 && (
+                <InlineEmailCta message="Ready for advanced topics? Subscribe for lesson updates." />
+              )}
             </div>
           );
         })}

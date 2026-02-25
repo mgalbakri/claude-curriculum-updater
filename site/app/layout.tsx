@@ -105,7 +105,7 @@ export default function RootLayout({
                 url: BASE_URL,
               },
               url: BASE_URL,
-              isAccessibleForFree: true,
+              isAccessibleForFree: false,
               hasCourseInstance: {
                 "@type": "CourseInstance",
                 courseMode: "online",
@@ -127,7 +127,7 @@ export default function RootLayout({
             }),
           }}
         />
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <AuthProvider>
             <ProgressProvider>
               <div className="flex min-h-screen overflow-x-hidden">
