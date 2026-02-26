@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     template: "%s — Agent Code Academy",
   },
   description:
-    "Go from zero coding knowledge to AI coding expert in 12 weeks. Learn to build real applications with Claude Code. 100% free — all 12 weeks included.",
+    "Go from zero coding knowledge to AI coding expert in 12 weeks. Learn to build real applications with Claude Code. Start free — upgrade to Pro for the full course.",
   keywords: [
     "Claude Code",
     "AI coding course",
@@ -50,7 +50,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Agent Code Academy — 12-Week AI Coding Course",
     description:
-      "Go from zero coding knowledge to AI coding expert in 12 weeks. Learn to build real applications with Claude Code. 100% free — all 12 weeks included.",
+      "Go from zero coding knowledge to AI coding expert in 12 weeks. Learn to build real applications with Claude Code. Start free — upgrade to Pro for the full course.",
     url: BASE_URL,
     siteName: "Agent Code Academy",
     type: "website",
@@ -60,7 +60,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Agent Code Academy — 12-Week AI Coding Course",
     description:
-      "Go from zero coding knowledge to AI coding expert in 12 weeks. 100% free — all 12 weeks included. Self-paced, always up-to-date.",
+      "Go from zero coding knowledge to AI coding expert in 12 weeks. Start free, go Pro when ready. Self-paced, always up-to-date.",
   },
   robots: {
     index: true,

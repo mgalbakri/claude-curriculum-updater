@@ -9,13 +9,10 @@ export const LS_EXIT_INTENT_SHOWN = "ccm-exit-intent-shown"; // sessionStorage
 export const LS_PREMIUM_TOKEN = "ccm-premium-token";
 
 // Course structure
-// ALL weeks free while Lemon Squeezy account is under verification.
-// To re-enable paid tiers, restore FREE_WEEKS to [1,2,3,4] and
-// PREMIUM_WEEKS to [5,6,7,8,9,10,11,12].
-export const FREE_WEEKS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
-export const PREMIUM_WEEKS = [] as const;
+export const FREE_WEEKS = [1, 2, 3, 4] as const;
+export const PREMIUM_WEEKS = [5, 6, 7, 8, 9, 10, 11, 12] as const;
 export const TOTAL_WEEKS = 12;
-export const COURSE_IS_FREE = true; // flip to false when LS is approved
+export const COURSE_IS_FREE = false;
 
 // Pricing (dormant while COURSE_IS_FREE)
 export const PRICE_AMOUNT = 4900; // cents
