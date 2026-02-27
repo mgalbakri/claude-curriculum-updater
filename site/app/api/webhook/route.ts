@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { createClient } from "@supabase/supabase-js";
+import { sendPurchaseConfirmation } from "@/lib/email";
 
 function getSupabaseAdmin() {
   return createClient(
@@ -33,6 +34,7 @@ export async function POST(request: Request) {
     const email: string = attrs?.user_email;
     const status: string = attrs?.status;
     const userId: string | undefined = attrs?.custom_data?.user_id;
+    const totalFormatted: string = attrs?.total_formatted || "$49.00";
 
     console.log(
       `Payment received: ${email} (user: ${userId || "anonymous"}, order: ${orderId}, status: ${status})`
@@ -51,6 +53,20 @@ export async function POST(request: Request) {
 
       if (error) {
         console.error("Failed to update profile:", error);
+      }
+    }
+
+    // Send purchase confirmation email
+    if (email && status === "paid") {
+      try {
+        await sendPurchaseConfirmation({
+          to: email,
+          orderId,
+          amount: totalFormatted,
+        });
+      } catch (emailError) {
+        // Log but don't fail the webhook — payment is already processed
+        console.error("Email send failed (non-fatal):", emailError);
       }
     }
   }
